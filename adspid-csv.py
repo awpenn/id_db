@@ -49,12 +49,14 @@ def create_dict():
     current_records_dict = {}
     new_records_dict = {}
     legacy_check_dict = {}
-    special_cohorts = ['NCRD'] #change this when figure out what the fams are
+    special_cohorts = ['NCRD'] #change: NIA-LOAD, RASKIND, UPENN
 
     def combine_new_and_legacy_dicts(processed_legacy_dict):
+        print('below is pld in cnald func')
         print(processed_legacy_dict)
-        
-        
+        print('heres the new_records original dict')
+        print(new_records_dict)
+              
         # compare(current_records_dict, new_records_dict)
     for row in current_records:
         #mostly just for reference to variables in the cr dict
@@ -92,8 +94,27 @@ def create_dict():
             # compare(current_records_dict, new_records_dict)
 
 def legacy_check(legacy_check_dict, callback):
-    print('leg check hit')
-    callback('callback returns to ofunc')
+    # -legacy_check dict passed to function that looks for cohort identifiers associated with family id (insert check for only one associated)
+    # -[will] build dict of subject info objects to be compared as usual, but with appropriate cohort identifier attached
+
+    processed_legacy_dict = {}
+    for key, value in legacy_check_dict.items():
+        query_family_id = value[0]
+        site_indiv_id = value[1]
+        site_combined_id = value[2]
+        cohort = value[3]
+
+        cursor = connection.cursor()
+        cursor.execute(f"SELECT DISTINCT identifier_code FROM lookup WHERE site_fam_id = '{query_family_id}'")
+        returned_cohort_code_tuple = cursor.fetchall()
+        returned_cohort_code = returned_cohort_code_tuple[0][0]
+
+        if len(returned_cohort_code_tuple) > 1 or len(returned_cohort_code) == 0:
+            print(f"Error, could not find cohort associated with ${key}, or found more than one.  Please check the database and your loadfile.")
+        else:
+            processed_legacy_dict[f'{returned_cohort_code}-{site_combined_id}'] = [query_family_id, site_indiv_id, site_combined_id, returned_cohort_code]
+
+    callback(processed_legacy_dict)
 
 def compare(current_records_dict, new_records_dict):
     records_to_database_dict = {}
