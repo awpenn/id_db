@@ -52,12 +52,9 @@ def create_dict():
     special_cohorts = ['NCRD'] #change: NIA-LOAD, RASKIND, UPENN
 
     def combine_new_and_legacy_dicts(processed_legacy_dict):
-        print('below is pld in cnald func')
-        print(processed_legacy_dict)
-        print('heres the new_records original dict')
-        print(new_records_dict)
-              
-        # compare(current_records_dict, new_records_dict)
+        combined_new_records_dict = {**new_records_dict, **processed_legacy_dict}
+        compare(current_records_dict, combined_new_records_dict)
+
     for row in current_records:
         #mostly just for reference to variables in the cr dict
         table_id = row[0]
@@ -91,7 +88,7 @@ def create_dict():
     
     else:
         print('none to special check')
-            # compare(current_records_dict, new_records_dict)
+        compare(current_records_dict, new_records_dict)
 
 def legacy_check(legacy_check_dict, callback):
     # -legacy_check dict passed to function that looks for cohort identifiers associated with family id (insert check for only one associated)
@@ -127,9 +124,12 @@ def compare(current_records_dict, new_records_dict):
             records_to_database_dict[key] = new_records_dict[key]
     
     if len(records_to_database_dict) > 0:
+        print('this will be added')
+        print(records_to_database_dict)
         write_to_database(records_to_database_dict)
     else:
         print('No new records to create.....')
+
 def write_to_database(records_to_database_dict):
     for key, value in records_to_database_dict.items():
         #need select statement to get id of cohort identifier code, adsp_family_id for site_fam_id, next adsp_indiv_partial_id based on the cohort,
@@ -142,14 +142,16 @@ def write_to_database(records_to_database_dict):
         # #get cohort id
         cursor = connection.cursor()
         cursor.execute(f"SELECT DISTINCT id FROM cohort_identifier_codes WHERE identifier_code = '{cohort_identifier}'")
-        retrieved_cohort_id = cursor.fetchall()   
+        retrieved_cohort_id = cursor.fetchall()
         for row in retrieved_cohort_id:
             cohort_identifier_id = row[0]
+
 
         cursor.execute(f"SELECT DISTINCT adsp_family_id FROM generated_ids WHERE site_fam_id = '{site_fam_id}'")
         retrieved_fam_id = cursor.fetchall()
         for row in retrieved_fam_id:
-            adsp_family_id = row[0]     
+            adsp_family_id = row[0]   
+
 
         cursor.execute(f"SELECT adsp_indiv_partial_id FROM lookup WHERE identifier_code = '{cohort_identifier}' ORDER BY adsp_indiv_partial_id DESC LIMIT 1")
         retrieved_partial = cursor.fetchall()
