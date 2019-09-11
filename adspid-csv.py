@@ -49,7 +49,7 @@ def create_dict():
     current_records_dict = {}
     new_records_dict = {}
     legacy_check_dict = {}
-    special_cohorts = ['NCRD'] #change: NIA-LOAD, RASKIND, UPENN
+    special_cohorts = ['NIALOAD', 'RAS', 'UPENN'] #change: NIA-LOAD, RASKIND, UPENN
 
     def combine_new_and_legacy_dicts(processed_legacy_dict):
         combined_new_records_dict = {**new_records_dict, **processed_legacy_dict}
@@ -146,11 +146,15 @@ def write_to_database(records_to_database_dict):
         for row in retrieved_cohort_id:
             cohort_identifier_id = row[0]
 
-
+        # get adsp_family_id or flag if none exists
         cursor.execute(f"SELECT DISTINCT adsp_family_id FROM generated_ids WHERE site_fam_id = '{site_fam_id}'")
         retrieved_fam_id = cursor.fetchall()
-        for row in retrieved_fam_id:
-            adsp_family_id = row[0]   
+        if len(retrieved_fam_id) > 0:
+            for row in retrieved_fam_id:
+                adsp_family_id = row[0]   
+        else:
+            print(f'there seems to be no adsp_family_id found associated with site family id {site_fam_id}. Check the database')
+            break
 
 
         cursor.execute(f"SELECT adsp_indiv_partial_id FROM lookup WHERE identifier_code = '{cohort_identifier}' ORDER BY adsp_indiv_partial_id DESC LIMIT 1")
