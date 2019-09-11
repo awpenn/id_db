@@ -46,11 +46,16 @@ def connect_database(DBIP, DBPASS, DBPORT, DB, DBUSER):
             print('database connection closed')
 
 def create_dict(): 
-    print('create dict called')
-    #dict of the current record tuples with the local_indiv_id+cohort letter code as key
     current_records_dict = {}
     new_records_dict = {}
+    legacy_check_dict = {}
+    special_cohorts = ['NCRD'] #change this when figure out what the fams are
 
+    def combine_new_and_legacy_dicts(processed_legacy_dict):
+        print(processed_legacy_dict)
+        
+        
+        # compare(current_records_dict, new_records_dict)
     for row in current_records:
         #mostly just for reference to variables in the cr dict
         table_id = row[0]
@@ -71,11 +76,24 @@ def create_dict():
             site_indiv_id = row[1]
             site_combined_id = row[2]
             cohort = row[3]
-            
-            new_records_dict[f'{cohort}-{site_combined_id}'] = row
-        print(new_records_dict)
+            if cohort in special_cohorts:
+                if '26_' in site_fam_id or '26-' in site_fam_id:
+                    legacy_check_dict[f'{cohort}-{site_combined_id}'] = row
+                else:
+                    new_records_dict[f'{cohort}-{site_combined_id}'] = row
+            else:
+                new_records_dict[f'{cohort}-{site_combined_id}'] = row
 
-    #compare(current_records_dict, new_records_dict)
+    if len(legacy_check_dict) > 0:
+        legacy_check(legacy_check_dict, combine_new_and_legacy_dicts)
+    
+    else:
+        print('none to special check')
+            # compare(current_records_dict, new_records_dict)
+
+def legacy_check(legacy_check_dict, callback):
+    print('leg check hit')
+    callback('callback returns to ofunc')
 
 def compare(current_records_dict, new_records_dict):
     records_to_database_dict = {}
