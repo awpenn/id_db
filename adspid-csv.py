@@ -5,6 +5,7 @@ import os
 
 current_records = []
 new_records = []
+load_file = "9-19_test.csv"
 
 def main():
     load_dotenv()
@@ -66,11 +67,10 @@ def create_dict():
         
         current_records_dict[f'{cohort}-{site_combined_id}'] = row
 
-    with open('./source_files/new_ids.csv', mode='r', encoding='utf-8-sig') as csv_file:
+    with open(f'./source_files/{load_file}', mode='r', encoding='utf-8-sig') as csv_file:
         new_records = csv.reader(csv_file)
 
         for row in new_records:
-            print('this is a row from the csv')
             site_fam_id = row[0]
             site_indiv_id = row[1]
             site_combined_id = row[2]
@@ -107,7 +107,7 @@ def legacy_check(legacy_check_dict, callback):
         returned_cohort_code = returned_cohort_code_tuple[0][0]
 
         if len(returned_cohort_code_tuple) > 1 or len(returned_cohort_code) == 0:
-            print(f"Error, could not find cohort associated with ${key}, or found more than one.  Please check the database and your loadfile.")
+            print(f"Error, could not find cohort associated with {key}, or found more than one.  Please check the database and your loadfile.")
         else:
             processed_legacy_dict[f'{returned_cohort_code}-{site_combined_id}'] = [query_family_id, site_indiv_id, site_combined_id, returned_cohort_code]
 
@@ -124,7 +124,6 @@ def compare(current_records_dict, new_records_dict):
             records_to_database_dict[key] = new_records_dict[key]
     
     if len(records_to_database_dict) > 0:
-        print('this will be added')
         print(records_to_database_dict)
         write_to_database(records_to_database_dict)
     else:
@@ -153,7 +152,7 @@ def write_to_database(records_to_database_dict):
             for row in retrieved_fam_id:
                 adsp_family_id = row[0]   
         else:
-            print(f'there seems to be no adsp_family_id found associated with site family id {site_fam_id}. Check the database')
+            print(f'there seems to be no adsp_family_id found associated with site family id {site_fam_id}. Please check the database')
             break
 
 
