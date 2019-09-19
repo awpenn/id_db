@@ -5,6 +5,7 @@ import os
 
 current_records = []
 new_records = []
+error_log = {}
 special_cohorts = ['NIALOAD', 'RAS', 'UPENN'] #change to correct codes for production
 load_file = "9-19_test.csv"
 
@@ -45,6 +46,7 @@ def connect_database(DBIP, DBPASS, DBPORT, DB, DBUSER):
             cursor.close()
             connection.close()
             print('database connection closed')
+            generate_errorlog()
 
 def create_dict(): 
     current_records_dict = {}
@@ -109,9 +111,14 @@ def legacy_check(legacy_check_dict, callback):
         if len(returned_cohort_code_tuple) > 1 or len(returned_cohort_code) == 0:
             if len(returned_cohort_code) == 0:
                 print(f"Error, no cohort found associated with {key}. please check your loadfile and the database.")
+                
+                error_log[key] = [value, "No cohort found for subject in legacy check"]
 
             if len(returned_cohort_code_tuple) > 1:
-                print(f"More than one cohort found associated with {key}. Selecting for legacy criteria.")
+                print(f"More than one cohort found associated with {key}. Selecting for legacy criteria. Please check database after upload to ensure accuracy.")
+                
+                error_log[key] = [value, "More than one cohort found for subject in legacy check. Writing with one selected from legacy cohorts, but check database to ensure accuracy."]
+                
                 print("Associated cohort codes found:")
                 for var in returned_cohort_code_tuple:
                     print(var[0])
@@ -131,6 +138,9 @@ def compare(current_records_dict, new_records_dict):
         try:
             if current_records_dict[key]:
                 print(f'record exists for: {current_records_dict[key]}')
+
+                error_log[key] = [value, "A record was already found for this subjec in the database."]
+
         except:
             print(f'new record will be created for {key}')
             records_to_database_dict[key] = new_records_dict[key]
@@ -165,6 +175,8 @@ def write_to_database(records_to_database_dict):
                 adsp_family_id = row[0]   
         else:
             print(f'there seems to be no adsp_family_id found associated with site family id {site_fam_id}. Please check the database')
+            error_log[key] = [value, "No adsp_family_id was found for the subject's site_family_id"]
+
             break
 
 
