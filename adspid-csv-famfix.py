@@ -5,7 +5,7 @@ import os
 
 current_records = []
 new_records = []
-special_cohorts = ['NIALOAD', 'RAS', 'UPENN'] #change: NIA-LOAD, RASKIND, UPENN
+special_cohorts = ['NIALOAD', 'RAS', 'UPENN'] #change to correct codes for production
 load_file = "9-19_test.csv"
 
 def main():
@@ -32,7 +32,6 @@ def connect_database(DBIP, DBPASS, DBPORT, DB, DBUSER):
                 )
 
         cursor = connection.cursor()
-        print('select statement from database')
         cursor.execute("SELECT * FROM lookup")
         current_records = cursor.fetchall()
 
@@ -106,12 +105,21 @@ def legacy_check(legacy_check_dict, callback):
         cursor.execute(f"SELECT DISTINCT identifier_code FROM lookup WHERE site_fam_id = '{query_family_id}'")
         returned_cohort_code_tuple = cursor.fetchall()
         returned_cohort_code = returned_cohort_code_tuple[0][0]
-
+        
         if len(returned_cohort_code_tuple) > 1 or len(returned_cohort_code) == 0:
-            print(f"Error, could not find cohort associated with {key}, or found more than one.  Please check the database and your loadfile.")
-            print("Associated cohort codes found:")
-            for var in returned_cohort_code_tuple:
-                print(var[0])
+            if len(returned_cohort_code) == 0:
+                print(f"Error, no cohort found associated with {key}. please check your loadfile and the database.")
+
+            if len(returned_cohort_code_tuple) > 1:
+                print(f"More than one cohort found associated with {key}. Selecting for legacy criteria.")
+                print("Associated cohort codes found:")
+                for var in returned_cohort_code_tuple:
+                    print(var[0])
+
+                    if var[0] in special_cohorts:
+                        returned_cohort_code = var[0]
+                        processed_legacy_dict[f'{returned_cohort_code}-{site_combined_id}'] = [query_family_id, site_indiv_id, site_combined_id, returned_cohort_code]
+
         else:
             processed_legacy_dict[f'{returned_cohort_code}-{site_combined_id}'] = [query_family_id, site_indiv_id, site_combined_id, returned_cohort_code]
 
