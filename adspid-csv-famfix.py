@@ -142,7 +142,7 @@ def compare(current_records_dict, new_records_dict):
             if current_records_dict[key]:
                 print(f'record exists for: {current_records_dict[key]}')
 
-                error_log[key] = [value, "A record was already found for this subject in the database."]
+                error_log[key] = [value, "A record for this subject already exists in the database. Check the database and your loadfile for correctness."]
 
         except:
             print(f'new record will be created for {key}')
@@ -178,7 +178,7 @@ def write_to_database(records_to_database_dict):
                 adsp_family_id = row[0]   
         else:
             print(f'there seems to be no adsp_family_id found associated with site family id {site_fam_id}. Please check the database')
-            error_log[key] = [value, "No adsp_family_id was found for the subject's site_family_id"]
+            error_log[key] = [value, "No adsp_family_id was found for this subject's site_family_id"]
 
             break
 

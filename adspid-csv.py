@@ -3,8 +3,12 @@ import csv
 from dotenv import load_dotenv
 import os
 
+import calendar
+import time
+
 current_records = []
 new_records = []
+error_log = {}
 special_cohorts = ['NIALOAD', 'RAS', 'UPENN'] #change: NIA-LOAD, RASKIND, UPENN
 load_file = "9-19_test.csv"
 
@@ -46,6 +50,7 @@ def connect_database(DBIP, DBPASS, DBPORT, DB, DBUSER):
             cursor.close()
             connection.close()
             print('database connection closed')
+            generate_errorlog()
 
 def create_dict(): 
     current_records_dict = {}
@@ -112,6 +117,8 @@ def legacy_check(legacy_check_dict, callback):
             print("Associated cohort codes found:")
             for var in returned_cohort_code_tuple:
                 print(var[0])
+
+            error_log[key] = [value, "There was a problem identifying the correct cohort id for this subject's site_family_id. Check the database and your loadfile."]
         else:
             processed_legacy_dict[f'{returned_cohort_code}-{site_combined_id}'] = [query_family_id, site_indiv_id, site_combined_id, returned_cohort_code]
 
@@ -123,6 +130,8 @@ def compare(current_records_dict, new_records_dict):
         try:
             if current_records_dict[key]:
                 print(f'record exists for: {current_records_dict[key]}')
+
+                error_log[key] = [value, "A record for this subject already exists in the database.  Check the database and your loadfile for correctness."]
         except:
             print(f'new record will be created for {key}')
             records_to_database_dict[key] = new_records_dict[key]
@@ -157,6 +166,7 @@ def write_to_database(records_to_database_dict):
                 adsp_family_id = row[0]   
         else:
             print(f'there seems to be no adsp_family_id found associated with site family id {site_fam_id}. Please check the database')
+            error_log[key] = [value, "No adsp_family_id was found for this subjects site_family_id."]
             break
 
 
@@ -174,6 +184,17 @@ def write_to_database(records_to_database_dict):
 
         cursor.execute(f"INSERT INTO generated_ids (site_fam_id, site_indiv_id, cohort_identifier_code, site_combined_id, adsp_family_id, adsp_indiv_partial_id, adsp_id) VALUES ('{site_fam_id}','{site_indiv_id}',{cohort_identifier_id},'{site_combined_id}','{adsp_family_id}','{adsp_indiv_partial_id}','{adsp_id}')")
         connection.commit()
+
+def generate_errorlog():
+    timestamp = calendar.timegm(time.gmtime())
+    f = open(f"./log_files/{timestamp}-log.txt", "w+")
+    f.write(f"{str(len(error_log.items()))} flag(s) raised in runtime. See details below: \n\n")
+    for key, value in error_log.items():
+        f.write(f"Error: {value[1]} \n")
+        f.write(f'family_site_id: {value[0][0]}\n')
+        f.write(f'indiv_site_id: {value[0][1]}\n')
+        f.write(f'combined_site_id: {value[0][2]}\n')
+        f.write(f'cohort code: {value[0][3]}\n\n')
 
 if __name__ == "__main__":
     main()
