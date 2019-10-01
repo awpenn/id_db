@@ -109,8 +109,10 @@ def legacy_check(legacy_check_dict, callback):
 
         cursor = connection.cursor()
         cursor.execute(f"SELECT DISTINCT identifier_code FROM lookup WHERE site_fam_id = '{query_family_id}'")
-        returned_cohort_code_tuple = cursor.fetchall()
-        returned_cohort_code = returned_cohort_code_tuple[0][0]
+
+            returned_cohort_code_tuple = cursor.fetchall()
+            returned_cohort_code = returned_cohort_code_tuple[0][0]
+ 
 
         if len(returned_cohort_code_tuple) > 1 or len(returned_cohort_code) == 0:
             print(f"Error, could not find cohort associated with {key}, or found more than one.  Please check the database and your loadfile.")

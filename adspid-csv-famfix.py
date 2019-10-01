@@ -19,13 +19,14 @@ def main():
     DBPORT = os.getenv('DBPORT')
     DB = os.getenv('DB')
     DBUSER = os.getenv('DBUSER')
-    
+    print('main called')
     connect_database(DBIP, DBPASS, DBPORT, DB, DBUSER)
 
 def connect_database(DBIP, DBPASS, DBPORT, DB, DBUSER):
     global current_records
     global connection
     load_dotenv()
+    print('connect called')
     try:
         connection = psycopg2.connect(
                     user = DBUSER,
@@ -41,7 +42,7 @@ def connect_database(DBIP, DBPASS, DBPORT, DB, DBUSER):
 
         create_dict()
 
-    except (Exception, psycopg2.Error) as error :
+    except (Exception, psycopg2.Error) as error:
         print('Error in database connection', error)
 
     finally:
@@ -52,12 +53,14 @@ def connect_database(DBIP, DBPASS, DBPORT, DB, DBUSER):
             generate_errorlog()
 
 def create_dict(): 
+    print('create_dict called')
     current_records_dict = {}
     new_records_dict = {}
     legacy_check_dict = {}
     global special_cohorts
 
     def combine_new_and_legacy_dicts(processed_legacy_dict):
+        print('combo hit')
         combined_new_records_dict = {**new_records_dict, **processed_legacy_dict}
         compare(current_records_dict, combined_new_records_dict)
 
@@ -76,6 +79,7 @@ def create_dict():
         new_records = csv.reader(csv_file)
 
         for row in new_records:
+            print('reading file')
             site_fam_id = row[0]
             site_indiv_id = row[1]
             site_combined_id = row[2]
@@ -89,6 +93,7 @@ def create_dict():
                 new_records_dict[f'{cohort}-{site_combined_id}'] = row
 
     if len(legacy_check_dict) > 0:
+        print('is leg long')
         legacy_check(legacy_check_dict, combine_new_and_legacy_dicts)
     
     else:
@@ -96,6 +101,7 @@ def create_dict():
         compare(current_records_dict, new_records_dict)
 
 def legacy_check(legacy_check_dict, callback):
+    print('leg hit')
     # -legacy_check dict passed to function that looks for cohort identifiers associated with family id (insert check for only one associated)
     # -[will] build dict of subject info objects to be compared as usual, but with appropriate cohort identifier attached
 
@@ -109,26 +115,29 @@ def legacy_check(legacy_check_dict, callback):
         cursor = connection.cursor()
         cursor.execute(f"SELECT DISTINCT identifier_code FROM lookup WHERE site_fam_id = '{query_family_id}'")
         returned_cohort_code_tuple = cursor.fetchall()
-        returned_cohort_code = returned_cohort_code_tuple[0][0]
+        print(returned_cohort_code_tuple)
+
+        try:
+            returned_cohort_code = returned_cohort_code_tuple[0][0]
+        except:
+            print(f'No associated cohort was found for {key}.  NIALOAD has been assigned, but check the database and log to assure correctness.')
+            returned_cohort_code = 'NIALOAD'
+            error_log[key] = [value, "No cohort was found for the family of this subject, suggesting it is new. NIALOAD was assigned, but check for correctness."]
+
         
-        if len(returned_cohort_code_tuple) > 1 or len(returned_cohort_code) == 0:
-            if len(returned_cohort_code) == 0:
-                print(f"Error, no cohort found associated with {key}. please check your loadfile and the database.")
-                
-                error_log[key] = [value, "No cohort found for subject in legacy check"]
+        if len(returned_cohort_code_tuple) > 1:
 
-            if len(returned_cohort_code_tuple) > 1:
-                print(f"More than one cohort found associated with {key}. Selecting for legacy criteria. Please check database after upload to ensure accuracy.")
+            print(f"More than one cohort found associated with {key}. Selecting for legacy criteria. Please check database after upload to ensure accuracy.")
                 
-                error_log[key] = [value, "More than one cohort found for subject in legacy check. Writing with one selected from legacy cohorts, but check database to ensure accuracy."]
+            error_log[key] = [value, "More than one cohort found for subject in legacy check. Writing with one selected from legacy cohorts, but check database to ensure accuracy."]
                 
-                print("Associated cohort codes found:")
-                for var in returned_cohort_code_tuple:
-                    print(var[0])
+            print("Associated cohort codes found:")
+            for var in returned_cohort_code_tuple:
+                print(var[0])
 
-                    if var[0] in special_cohorts:
-                        returned_cohort_code = var[0]
-                        processed_legacy_dict[f'{returned_cohort_code}-{site_combined_id}'] = [query_family_id, site_indiv_id, site_combined_id, returned_cohort_code]
+                if var[0] in special_cohorts:
+                    returned_cohort_code = var[0]
+                    processed_legacy_dict[f'{returned_cohort_code}-{site_combined_id}'] = [query_family_id, site_indiv_id, site_combined_id, returned_cohort_code]
 
         else:
             processed_legacy_dict[f'{returned_cohort_code}-{site_combined_id}'] = [query_family_id, site_indiv_id, site_combined_id, returned_cohort_code]
@@ -136,6 +145,7 @@ def legacy_check(legacy_check_dict, callback):
     callback(processed_legacy_dict)
 
 def compare(current_records_dict, new_records_dict):
+    print('compare hit')
     records_to_database_dict = {}
     for key, value in new_records_dict.items():
         try:
