@@ -19,14 +19,14 @@ def main():
     DBPORT = os.getenv('DBPORT')
     DB = os.getenv('DB')
     DBUSER = os.getenv('DBUSER')
-    print('main called')
+
     connect_database(DBIP, DBPASS, DBPORT, DB, DBUSER)
 
 def connect_database(DBIP, DBPASS, DBPORT, DB, DBUSER):
     global current_records
     global connection
     load_dotenv()
-    print('connect called')
+
     try:
         connection = psycopg2.connect(
                     user = DBUSER,
@@ -53,14 +53,14 @@ def connect_database(DBIP, DBPASS, DBPORT, DB, DBUSER):
             generate_errorlog()
 
 def create_dict(): 
-    print('create_dict called')
+
     current_records_dict = {}
     new_records_dict = {}
     legacy_check_dict = {}
     global special_cohorts
 
     def combine_new_and_legacy_dicts(processed_legacy_dict):
-        print('combo hit')
+
         combined_new_records_dict = {**new_records_dict, **processed_legacy_dict}
         compare(current_records_dict, combined_new_records_dict)
 
@@ -93,7 +93,7 @@ def create_dict():
                 new_records_dict[f'{cohort}-{site_combined_id}'] = row
 
     if len(legacy_check_dict) > 0:
-        print('is leg long')
+
         legacy_check(legacy_check_dict, combine_new_and_legacy_dicts)
     
     else:
@@ -101,7 +101,7 @@ def create_dict():
         compare(current_records_dict, new_records_dict)
 
 def legacy_check(legacy_check_dict, callback):
-    print('leg hit')
+
     # -legacy_check dict passed to function that looks for cohort identifiers associated with family id (insert check for only one associated)
     # -[will] build dict of subject info objects to be compared as usual, but with appropriate cohort identifier attached
 
@@ -115,8 +115,7 @@ def legacy_check(legacy_check_dict, callback):
         cursor = connection.cursor()
         cursor.execute(f"SELECT DISTINCT identifier_code FROM lookup WHERE site_fam_id = '{query_family_id}'")
         returned_cohort_code_tuple = cursor.fetchall()
-        print(returned_cohort_code_tuple)
-
+        
         try:
             returned_cohort_code = returned_cohort_code_tuple[0][0]
         except:
@@ -188,9 +187,23 @@ def write_to_database(records_to_database_dict):
                 adsp_family_id = row[0]   
         else:
             print(f'there seems to be no adsp_family_id found associated with site family id {site_fam_id}. Please check the database')
-            error_log[key] = [value, "No adsp_family_id was found for this subject's site_family_id"]
+            # error_log[key] = [value, "No adsp_family_id was found for this subject's site_family_id"]
+            make_fam_id = input("Do you want to generate a new ADSP_family_id for this site_family_id?(y/n)")
+            if(make_fam_id == 'y'):
+                print('making fam id')
+                cursor.execute(f"SELECT adsp_family_id FROM lookup WHERE identifier_code = '{cohort_identifier}' ORDER BY adsp_family_id DESC LIMIT 1")
+                retrieved_adsp_family = cursor.fetchall()
+                
+                most_recent_family_id = retrieved_adsp_family[0][0]
+                prefix = most_recent_family_id[:2]
+                id_numeric_end = len(most_recent_family_id)-1
+                incremental = int(most_recent_family_id[2:id_numeric_end])+1
 
-            break
+                print(f'{prefix}{str(incremental).zfill(4)}F')
+                adsp_family_id = f'{prefix}{str(incremental).zfill(4)}F'
+           
+            else:
+                break
 
 
         cursor.execute(f"SELECT adsp_indiv_partial_id FROM lookup WHERE identifier_code = '{cohort_identifier}' ORDER BY adsp_indiv_partial_id DESC LIMIT 1")
