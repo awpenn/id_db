@@ -115,31 +115,35 @@ def legacy_check(legacy_check_dict, callback):
         cursor = connection.cursor()
         cursor.execute(f"SELECT DISTINCT identifier_code FROM lookup WHERE site_fam_id = '{query_family_id}'")
         returned_cohort_code_tuple = cursor.fetchall()
-        
-        try:
+        print(f'tuple is {len(returned_cohort_code_tuple)}')
+
+        if len(returned_cohort_code_tuple) == 1 :
             returned_cohort_code = returned_cohort_code_tuple[0][0]
-        except:
-            print(f'No associated cohort was found for {key}.  NIALOAD has been assigned, but check the database and log to assure correctness.')
-            returned_cohort_code = 'NIALOAD'
-            error_log[key] = [value, "No cohort was found for the family of this subject, suggesting it is new. NIALOAD was assigned, but check for correctness."]
-
-        
-        if len(returned_cohort_code_tuple) > 1:
-
-            print(f"More than one cohort found associated with {key}. Selecting for legacy criteria. Please check database after upload to ensure accuracy.")
-                
-            error_log[key] = [value, "More than one cohort found for subject in legacy check. Writing with one selected from legacy cohorts, but check database to ensure accuracy."]
-                
-            print("Associated cohort codes found:")
-            for var in returned_cohort_code_tuple:
-                print(var[0])
-
-                if var[0] in special_cohorts:
-                    returned_cohort_code = var[0]
-                    processed_legacy_dict[f'{returned_cohort_code}-{site_combined_id}'] = [query_family_id, site_indiv_id, site_combined_id, returned_cohort_code]
 
         else:
-            processed_legacy_dict[f'{returned_cohort_code}-{site_combined_id}'] = [query_family_id, site_indiv_id, site_combined_id, returned_cohort_code]
+            if len(returned_cohort_code_tuple) > 1:
+                print(f"More than one cohort found associated with {key}. Selecting for legacy criteria. Please check database after upload to ensure accuracy.")
+                        
+                error_log[key] = [value, "More than one cohort found for subject in legacy check. Writing with one selected from legacy cohorts, but check database to ensure accuracy."]
+                        
+                print("Associated cohort codes found:")
+                for var in returned_cohort_code_tuple:
+                    print(var[0])
+
+                    if var[0] in special_cohorts:
+                        returned_cohort_code = var[0]
+                        processed_legacy_dict[f'{returned_cohort_code}-{site_combined_id}'] = [query_family_id, site_indiv_id, site_combined_id, returned_cohort_code]
+                    
+                    else:
+                        error_log[key] = [value, "More than one cohort found for subject in legacy check, and none found matching legacy conditions. Check your loadfile and the database."]
+                        break
+            else:
+                print(f'No associated cohort was found for {key}.  NIALOAD has been assigned, but check the database and log to assure correctness.')
+                returned_cohort_code = 'NIALOAD'
+                error_log[key] = [value, "No cohort was found for the family of this subject, suggesting it is new. NIALOAD was assigned, but check for correctness."]
+
+
+        processed_legacy_dict[f'{returned_cohort_code}-{site_combined_id}'] = [query_family_id, site_indiv_id, site_combined_id, returned_cohort_code]
 
     callback(processed_legacy_dict)
 
@@ -193,14 +197,19 @@ def write_to_database(records_to_database_dict):
                 print('making fam id')
                 cursor.execute(f"SELECT adsp_family_id FROM lookup WHERE identifier_code = '{cohort_identifier}' ORDER BY adsp_family_id DESC LIMIT 1")
                 retrieved_adsp_family = cursor.fetchall()
-                
-                most_recent_family_id = retrieved_adsp_family[0][0]
-                prefix = most_recent_family_id[:2]
-                id_numeric_end = len(most_recent_family_id)-1
-                incremental = int(most_recent_family_id[2:id_numeric_end])+1
 
-                print(f'{prefix}{str(incremental).zfill(4)}F')
-                adsp_family_id = f'{prefix}{str(incremental).zfill(4)}F'
+                if len(retrieved_adsp_family) < 1:
+                    print(f'No adsp_family_id found associated with cohort {cohort_identifier}')
+                    error_log[key] = [value, "Error: Attempted to create new adsp_family_id, but no adsp_family_ids found associated with this cohort."]
+                    break
+                else:
+                    most_recent_family_id = retrieved_adsp_family[0][0]
+                    prefix = most_recent_family_id[:2]
+                    id_numeric_end = len(most_recent_family_id)-1
+                    incremental = int(most_recent_family_id[2:id_numeric_end])+1
+
+                    print(f'{prefix}{str(incremental).zfill(4)}F')
+                    adsp_family_id = f'{prefix}{str(incremental).zfill(4)}F'
            
             else:
                 break
