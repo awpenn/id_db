@@ -9,8 +9,8 @@ import time
 current_records = []
 new_records = []
 error_log = {}
-special_cohorts = ['NIALOAD', 'RAS', 'UPENN'] #change to correct codes for production
-load_file = "9-19_test.csv"
+special_cohorts = ['LOAD', 'RAS', 'UPN'] #change to correct codes for production
+load_file = "107_test2_newids_LOAD.csv"
 
 def main():
     load_dotenv()
@@ -139,7 +139,7 @@ def legacy_check(legacy_check_dict, callback):
                         break
             else:
                 print(f'No associated cohort was found for {key}.  NIALOAD has been assigned, but check the database and log to assure correctness.')
-                returned_cohort_code = 'NIALOAD'
+                returned_cohort_code = 'LOAD'
                 error_log[key] = [value, "No cohort was found for the family of this subject, suggesting it is new. NIALOAD was assigned, but check for correctness."]
 
 
@@ -201,7 +201,7 @@ def write_to_database(records_to_database_dict):
                 if len(retrieved_adsp_family) < 1:
                     print(f'No adsp_family_id found associated with cohort {cohort_identifier}')
                     error_log[key] = [value, "Error: Attempted to create new adsp_family_id, but no adsp_family_ids found associated with this cohort."]
-                    break
+                    continue
                 else:
                     most_recent_family_id = retrieved_adsp_family[0][0]
                     prefix = most_recent_family_id[:2]
@@ -212,11 +212,15 @@ def write_to_database(records_to_database_dict):
                     adsp_family_id = f'{prefix}{str(incremental).zfill(4)}F'
            
             else:
-                break
+                continue
 
 
         cursor.execute(f"SELECT adsp_indiv_partial_id FROM lookup WHERE identifier_code = '{cohort_identifier}' ORDER BY adsp_indiv_partial_id DESC LIMIT 1")
         retrieved_partial = cursor.fetchall()
+
+        if len(retrieved_partial) < 1:
+            print(f"No adsp_indiv_partial found associated with {cohort_identifier}. Is this the correct cohort identifier?")
+            error_log[key] = [value, f"Error: No indiv_partial was returned when queried for cohort code: {cohort_identifier}. Check that letter code and not table key is in loadfile."]
         for row in retrieved_partial:
             last_partial_created = row[0]
         
