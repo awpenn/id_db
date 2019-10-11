@@ -10,7 +10,7 @@ current_records = []
 new_records = []
 error_log = {}
 special_cohorts = ['LOAD', 'RAS', 'UPN'] #change to correct codes for production
-load_file = "107_test2_newids_LOAD.csv"
+load_file = "test3_newids.csv"
 
 def main():
     load_dotenv()
@@ -38,8 +38,8 @@ def connect_database(DBIP, DBPASS, DBPORT, DB, DBUSER):
 
         cursor = connection.cursor()
         cursor.execute("SELECT * FROM lookup")
-        current_records = cursor.fetchall()
 
+        current_records = cursor.fetchall()
         create_dict()
 
     except (Exception, psycopg2.Error) as error:
