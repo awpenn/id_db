@@ -10,7 +10,7 @@ current_records = []
 new_records = []
 error_log = {}
 special_cohorts = ['LOAD', 'RAS', 'UPN'] #change to correct codes for production
-load_file = "1016-newids.csv"
+load_file = "ras-newids.csv"
 family_data_creation = False
 
 def main():
@@ -91,7 +91,6 @@ def create_dict():
         new_records = csv.reader(csv_file)
 
         for row in new_records:
-            print('reading file')
             site_fam_id = row[0]
             site_indiv_id = row[1]
             site_combined_id = row[2]
@@ -99,11 +98,11 @@ def create_dict():
             ## add conditional to check case/fam switch selected at beginning
             if cohort in special_cohorts and family_data_creation:
                 if '26_' in site_fam_id or '26-' in site_fam_id:
-                    legacy_check_dict[f'{cohort}-{site_combined_id}'] = row
+                    legacy_check_dict[f'{cohort}-{site_fam_id}_{site_indiv_id}'] = row
                 else:
-                    new_records_dict[f'{cohort}-{site_combined_id}'] = row
+                    new_records_dict[f'{cohort}-{site_fam_id}_{site_indiv_id}'] = row
             else:
-                new_records_dict[f'{cohort}-{site_combined_id}'] = row
+                new_records_dict[f'{cohort}-{site_fam_id}_{site_indiv_id}'] = row
 
     if len(legacy_check_dict) > 0:
 
@@ -114,7 +113,7 @@ def create_dict():
         compare(current_records_dict, new_records_dict)
 
 def legacy_check(legacy_check_dict, callback):
-
+    print('legacy check hit')
     # -legacy_check dict passed to function that looks for cohort identifiers associated with family id (insert check for only one associated)
     # -[will] build dict of subject info objects to be compared as usual, but with appropriate cohort identifier attached
 
@@ -128,7 +127,7 @@ def legacy_check(legacy_check_dict, callback):
         cursor = connection.cursor()
         cursor.execute(f"SELECT DISTINCT identifier_code FROM lookup WHERE site_fam_id = '{query_family_id}'")
         returned_cohort_code_tuple = cursor.fetchall()
-        print(f'tuple is {len(returned_cohort_code_tuple)}')
+        print(f'length of tuple returned for family_id fetch is {len(returned_cohort_code_tuple)}')
 
         if len(returned_cohort_code_tuple) == 1 :
             returned_cohort_code = returned_cohort_code_tuple[0][0]
@@ -161,7 +160,7 @@ def legacy_check(legacy_check_dict, callback):
     callback(processed_legacy_dict)
 
 def compare(current_records_dict, new_records_dict):
-    print('compare hit')
+    print('compare function hit')
     records_to_database_dict = {}
     for key, value in new_records_dict.items():
         try:
@@ -188,44 +187,47 @@ def write_to_database(records_to_database_dict):
         site_combined_id = value[2]
         site_indiv_id = value[1]
         cohort_identifier = value[3]
-    
-        # #get cohort id
+        ## initialized as 0, will change if fam is switched on
+        adsp_family_id = 0
+
+        ## get cohort id
         cursor = connection.cursor()
         cursor.execute(f"SELECT DISTINCT id FROM cohort_identifier_codes WHERE identifier_code = '{cohort_identifier}'")
         retrieved_cohort_id = cursor.fetchall()
         for row in retrieved_cohort_id:
             cohort_identifier_id = row[0]
 
-        # get adsp_family_id or flag if none exists
-        cursor.execute(f"SELECT DISTINCT adsp_family_id FROM generated_ids WHERE site_fam_id = '{site_fam_id}'")
-        retrieved_fam_id = cursor.fetchall()
-        if len(retrieved_fam_id) > 0:
-            for row in retrieved_fam_id:
-                adsp_family_id = row[0]   
-        else:
-            print(f'there seems to be no adsp_family_id found associated with site family id {site_fam_id}. Please check the database')
-            # error_log[key] = [value, "No adsp_family_id was found for this subject's site_family_id"]
-            make_fam_id = input("Do you want to generate a new ADSP_family_id for this site_family_id?(y/n)")
-            if(make_fam_id == 'y'):
-                print('making fam id')
-                cursor.execute(f"SELECT adsp_family_id FROM lookup WHERE identifier_code = '{cohort_identifier}' ORDER BY adsp_family_id DESC LIMIT 1")
-                retrieved_adsp_family = cursor.fetchall()
-
-                if len(retrieved_adsp_family) < 1:
-                    print(f'No adsp_family_id found associated with cohort {cohort_identifier}')
-                    error_log[key] = [value, "Error: Attempted to create new adsp_family_id, but no adsp_family_ids found associated with this cohort."]
-                    continue
-                else:
-                    most_recent_family_id = retrieved_adsp_family[0][0]
-                    prefix = most_recent_family_id[:2]
-                    id_numeric_end = len(most_recent_family_id)-1
-                    incremental = int(most_recent_family_id[2:id_numeric_end])+1
-
-                    print(f'{prefix}{str(incremental).zfill(4)}F')
-                    adsp_family_id = f'{prefix}{str(incremental).zfill(4)}F'
-           
+        ## get adsp_family_id or flag if none exists, IF family id switch is True
+        if family_data_creation:
+            cursor.execute(f"SELECT DISTINCT adsp_family_id FROM generated_ids WHERE site_fam_id = '{site_fam_id}'")
+            retrieved_fam_id = cursor.fetchall()
+            if len(retrieved_fam_id) > 0:
+                for row in retrieved_fam_id:
+                    adsp_family_id = row[0]   
             else:
-                continue
+                print(f'there seems to be no adsp_family_id found associated with site family id {site_fam_id}. Please check the database')
+                # error_log[key] = [value, "No adsp_family_id was found for this subject's site_family_id"]
+                make_fam_id = input("Do you want to generate a new ADSP_family_id for this site_family_id?(y/n)")
+                if(make_fam_id == 'y'):
+                    print('making fam id')
+                    cursor.execute(f"SELECT adsp_family_id FROM lookup WHERE identifier_code = '{cohort_identifier}' ORDER BY adsp_family_id DESC LIMIT 1")
+                    retrieved_adsp_family = cursor.fetchall()
+
+                    if len(retrieved_adsp_family) < 1:
+                        print(f'No adsp_family_id found associated with cohort {cohort_identifier}')
+                        error_log[key] = [value, "Error: Attempted to create new adsp_family_id, but no adsp_family_ids found associated with this cohort."]
+                        continue
+                    else:
+                        most_recent_family_id = retrieved_adsp_family[0][0]
+                        prefix = most_recent_family_id[:2]
+                        id_numeric_end = len(most_recent_family_id)-1
+                        incremental = int(most_recent_family_id[2:id_numeric_end])+1
+
+                        print(f'{prefix}{str(incremental).zfill(4)}F')
+                        adsp_family_id = f'{prefix}{str(incremental).zfill(4)}F'
+            
+                else:
+                    continue
 
 
         cursor.execute(f"SELECT adsp_indiv_partial_id FROM lookup WHERE identifier_code = '{cohort_identifier}' ORDER BY adsp_indiv_partial_id DESC LIMIT 1")
