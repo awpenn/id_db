@@ -10,7 +10,8 @@ current_records = []
 new_records = []
 error_log = {}
 special_cohorts = ['LOAD', 'RAS', 'UPN'] #change to correct codes for production
-load_file = "test3_newids.csv"
+load_file = "1016-newids.csv"
+family_data_creation = False
 
 def main():
     load_dotenv()
@@ -19,6 +20,17 @@ def main():
     DBPORT = os.getenv('DBPORT')
     DB = os.getenv('DB')
     DBUSER = os.getenv('DBUSER')
+    global family_data_creation
+    
+    select_casefam = input("Are you loading family data? (y/n)")
+    if select_casefam == 'y':
+        family_data_creation = True
+        print('family ids will be checked and generated.')
+    if select_casefam == 'n':
+        print('family ids will not be checked and generated.')
+
+
+
 
     connect_database(DBIP, DBPASS, DBPORT, DB, DBUSER)
 
@@ -84,7 +96,8 @@ def create_dict():
             site_indiv_id = row[1]
             site_combined_id = row[2]
             cohort = row[3]
-            if cohort in special_cohorts:
+            ## add conditional to check case/fam switch selected at beginning
+            if cohort in special_cohorts and family_data_creation:
                 if '26_' in site_fam_id or '26-' in site_fam_id:
                     legacy_check_dict[f'{cohort}-{site_combined_id}'] = row
                 else:
