@@ -27,6 +27,9 @@
 		"adsp_indiv_partial_id" VARCHAR(50),
 			--unique part of generated ADSP ID for individual
 		"adsp_id" VARCHAR(50) UNIQUE,
+		"comments" VARCHAR (500),
+		"valid" BOOLEAN NOT NULL DEFAULT FALSE, 
+			--boolean indicating whether id is valid.
 		"createdat" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT current_timestamp,
 		PRIMARY KEY("id")
 	);
