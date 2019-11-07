@@ -1,3 +1,6 @@
+/* Create enum list for subject_type*/
+CREATE TYPE "public"."subject_type" AS ENUM('case/control', 'family', 'other');       
+
 /*Create tables for adspid_id database*/
 
 	/*cohort identifier code table*/
@@ -30,6 +33,8 @@
 		"comments" VARCHAR (500),
 		"valid" BOOLEAN NOT NULL DEFAULT FALSE, 
 			--boolean indicating whether id is valid.
+		"subject_type" "public"."subject_type" DEFAULT 'other',
+			--enum list with values case/control, family, and other, indicating subject is member of case/control or family study
 		"createdat" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT current_timestamp,
 		PRIMARY KEY("id")
 	);

@@ -10,7 +10,7 @@ current_records = []
 new_records = []
 error_log = {}
 special_cohorts = ['LOAD', 'RAS', 'UPN'] #change to correct codes for production
-load_file = "ras-newids.csv"
+load_file = "iibd-newids.csv"
 family_data_creation = False
 
 def main():
@@ -127,7 +127,7 @@ def legacy_check(legacy_check_dict, callback):
         cursor = connection.cursor()
         cursor.execute(f"SELECT DISTINCT identifier_code FROM lookup WHERE site_fam_id = '{query_family_id}'")
         returned_cohort_code_tuple = cursor.fetchall()
-        print(f'length of tuple returned for family_id fetch is {len(returned_cohort_code_tuple)}')
+        print(f'length of tuple returned for family_id {query_family_id} fetch is {len(returned_cohort_code_tuple)}')
 
         if len(returned_cohort_code_tuple) == 1 :
             returned_cohort_code = returned_cohort_code_tuple[0][0]
@@ -184,9 +184,16 @@ def write_to_database(records_to_database_dict):
         #need select statement to get id of cohort identifier code, adsp_family_id for site_fam_id, next adsp_indiv_partial_id based on the cohort,
         #next adspid based on the cohort
         site_fam_id = value[0]
-        site_combined_id = value[2]
         site_indiv_id = value[1]
+        if not family_data_creation:
+            site_combined_id = site_indiv_id
+            subject_type = 'case/control'
+        else:
+            site_combined_id = value[2]
+            subject_type = 'family'
+
         cohort_identifier = value[3]
+
         ## initialized as 0, will change if fam is switched on
         adsp_family_id = 0
 
@@ -229,25 +236,27 @@ def write_to_database(records_to_database_dict):
                 else:
                     continue
 
-
-        cursor.execute(f"SELECT adsp_indiv_partial_id FROM lookup WHERE identifier_code = '{cohort_identifier}' ORDER BY adsp_indiv_partial_id DESC LIMIT 1")
+        cursor.execute(f"SELECT adsp_indiv_partial_id FROM builder_lookup WHERE identifier_code = '{cohort_identifier}' ORDER BY adsp_indiv_partial_id DESC LIMIT 1")
         retrieved_partial = cursor.fetchall()
 
         if len(retrieved_partial) < 1:
-            print(f"No adsp_indiv_partial found associated with {cohort_identifier}. Is this the correct cohort identifier?")
+            print(f"No adsp_indiv_partial found associated with {cohort_identifier}.  Check that you're using the correct cohort identifier code (letter-based). No record will be created.")
+            
             error_log[key] = [value, f"Error: No indiv_partial was returned when queried for cohort code: {cohort_identifier}. Check that letter code and not table key is in loadfile."]
-        for row in retrieved_partial:
-            last_partial_created = row[0]
-        
-        prefix = last_partial_created[:2]
-        incremental = int(last_partial_created[2:])+1
+        else:
 
-        adsp_indiv_partial_id = f'{prefix}{str(incremental).zfill(6)}'
+            for row in retrieved_partial:
+                last_partial_created = row[0]
+            
+            prefix = last_partial_created[:2]
+            incremental = int(last_partial_created[2:])+1
 
-        adsp_id = f'A-{cohort_identifier}-{adsp_indiv_partial_id}'
+            adsp_indiv_partial_id = f'{prefix}{str(incremental).zfill(6)}'
 
-        cursor.execute(f"INSERT INTO generated_ids (site_fam_id, site_indiv_id, cohort_identifier_code, site_combined_id, adsp_family_id, adsp_indiv_partial_id, adsp_id) VALUES ('{site_fam_id}','{site_indiv_id}',{cohort_identifier_id},'{site_combined_id}','{adsp_family_id}','{adsp_indiv_partial_id}','{adsp_id}')")
-        connection.commit()
+            adsp_id = f'A-{cohort_identifier}-{adsp_indiv_partial_id}'
+
+            cursor.execute(f"INSERT INTO generated_ids (site_fam_id, site_indiv_id, cohort_identifier_code, site_combined_id, adsp_family_id, adsp_indiv_partial_id, adsp_id, subject_type) VALUES ('{site_fam_id}','{site_indiv_id}',{cohort_identifier_id},'{site_combined_id}','{adsp_family_id}','{adsp_indiv_partial_id}','{adsp_id}','{subject_type}')")
+            connection.commit()
 
 def generate_errorlog():
     timestamp = calendar.timegm(time.gmtime())
