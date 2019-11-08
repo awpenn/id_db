@@ -12,7 +12,7 @@ def connect_database():
     global connection
 
     load_dotenv()
-    
+
     DBIP = os.getenv('DBIP')
     DBPASS = os.getenv('DBPASS')
     DBPORT = os.getenv('DBPORT')
@@ -20,15 +20,7 @@ def connect_database():
     DBUSER = os.getenv('DBUSER')
 
     try:
-        connection = psycopg2.connect(
-                        user = DBUSER,
-                        password = DBPASS,
-                        host = DBIP,
-                        port = DBPORT,
-                        database = DB
-                    )
-
-        cursor = connection.cursor()
+        connection = psycopg2.connect(user = DBUSER, password = DBPASS, host = DBIP, port = DBPORT, database = DB )
         main()
 
     except (Exception, psycopg2.Error) as error:
@@ -36,11 +28,9 @@ def connect_database():
 
     finally:
         if(connection):
-            cursor.close()
             connection.close()
             print('database connection closed')
-            generate_errorlog()
-            generate_success_list()
+
 
 def main():
     confirm = input("Have you checked the newly added subject information for correctness and now want to validate them? (y/n)")
@@ -50,8 +40,11 @@ def main():
     else:
         print('Please review the newly added data and validate when ready.')
 def validate(data):
-    for adspid_id in data:
-        print(adspid_id)
+    cursor = connection.cursor()
+    for adsp_id in data:
+        print(f"validating {adsp_id}")
+        cursor.execute(f"UPDATE generated_ids SET valid = TRUE WHERE adsp_id = '{adsp_id}'")
+        connection.commit()
 
 
 def get_filename():
@@ -62,8 +55,8 @@ def get_filename():
                 data = list(line.split(', '))
                 validate(data)
 
-    except:
-        print('That file does not exist, try again')
+    except (Exception, psycopg2.Error) as error:
+        print('Error', error)
         get_filename()
 
 if __name__ == "__main__":
