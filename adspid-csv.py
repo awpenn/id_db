@@ -104,11 +104,11 @@ def create_dict():
             ## add conditional to check case/fam switch selected at beginning
             if cohort in special_cohorts and family_data_creation:
                 if '26_' in site_fam_id or '26-' in site_fam_id:
-                    legacy_check_dict[f'{cohort}-{site_fam_id}_{site_indiv_id}'] = row
+                    legacy_check_dict[f'{cohort}-{site_combined_id}'] = row
                 else:
-                    new_records_dict[f'{cohort}-{site_fam_id}_{site_indiv_id}'] = row
+                    new_records_dict[f'{cohort}-{site_combined_id}'] = row
             else:
-                new_records_dict[f'{cohort}-{site_fam_id}_{site_indiv_id}'] = row
+                new_records_dict[f'{cohort}-{site_combined_id}'] = row
 
     if len(legacy_check_dict) > 0:
 
@@ -178,6 +178,7 @@ def compare(current_records_dict, new_records_dict):
 
         except:
             print(f'new record will be created for {key}')
+
             records_to_database_dict[key] = new_records_dict[key]
     
     if len(records_to_database_dict) > 0:
