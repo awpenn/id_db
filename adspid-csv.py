@@ -8,6 +8,7 @@ import time
 
 current_records = []
 new_records = []
+success_id_log = []
 error_log = {}
 special_cohorts = ['LOAD', 'RAS', 'UPN'] #change to correct codes for production
 load_file = "ras-newids.csv"
@@ -41,12 +42,12 @@ def connect_database(DBIP, DBPASS, DBPORT, DB, DBUSER):
 
     try:
         connection = psycopg2.connect(
-                    user = DBUSER,
-                    password = DBPASS,
-                    host = DBIP,
-                    port = DBPORT,
-                    database = DB
-                )
+                        user = DBUSER,
+                        password = DBPASS,
+                        host = DBIP,
+                        port = DBPORT,
+                        database = DB
+                    )
 
         cursor = connection.cursor()
         cursor.execute("SELECT * FROM lookup")
@@ -63,6 +64,7 @@ def connect_database(DBIP, DBPASS, DBPORT, DB, DBUSER):
             connection.close()
             print('database connection closed')
             generate_errorlog()
+            generate_success_list()
 
 def create_dict(): 
 
@@ -265,6 +267,7 @@ def write_to_database(records_to_database_dict):
 
             cursor.execute(f"INSERT INTO generated_ids (site_fam_id, site_indiv_id, cohort_identifier_code, site_combined_id, adsp_family_id, adsp_indiv_partial_id, adsp_id, subject_type) VALUES ('{site_fam_id}','{site_indiv_id}',{cohort_identifier_id},'{site_combined_id}','{adsp_family_id}','{adsp_indiv_partial_id}','{adsp_id}','{subject_type}')")
             connection.commit()
+            success_id_log.append(adsp_id)
 
 def generate_errorlog():
     timestamp = calendar.timegm(time.gmtime())
@@ -277,5 +280,15 @@ def generate_errorlog():
         f.write(f'combined_site_id: {value[0][2]}\n')
         f.write(f'cohort code: {value[0][3]}\n\n')
 
+def generate_success_list():
+    timestamp = calendar.timegm(time.gmtime())
+    f = open(f"./log_files/success_lists/{timestamp}-generated_ids.txt", "w+")
+    for id in success_id_log:
+        if success_id_log.index(id) >= len(success_id_log)-1:
+            f.write(id)
+        else:
+            f.write(id + ", ")
+
+    f.close()
 if __name__ == "__main__":
     main()
