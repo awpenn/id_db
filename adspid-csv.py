@@ -10,7 +10,7 @@ current_records = []
 new_records = []
 error_log = {}
 special_cohorts = ['LOAD', 'RAS', 'UPN'] #change to correct codes for production
-load_file = "iibd-newids.csv"
+load_file = "ras-newids.csv"
 family_data_creation = False
 
 def main():
@@ -93,8 +93,14 @@ def create_dict():
         for row in new_records:
             site_fam_id = row[0]
             site_indiv_id = row[1]
-            site_combined_id = row[2]
-            cohort = row[3]
+            ## if looking at family data, make combined id with site_fam_id + site_indiv_id, else is same as indiv_id
+            if family_data_creation:
+                site_combined_id = f'{site_fam_id}_{site_indiv_id}'
+            else:
+                site_combined_id = site_indiv_id
+            cohort = row[2]
+            
+            row.insert(2, site_combined_id)
             ## add conditional to check case/fam switch selected at beginning
             if cohort in special_cohorts and family_data_creation:
                 if '26_' in site_fam_id or '26-' in site_fam_id:
@@ -114,6 +120,7 @@ def create_dict():
 
 def legacy_check(legacy_check_dict, callback):
     print('legacy check hit')
+    print(legacy_check_dict)
     # -legacy_check dict passed to function that looks for cohort identifiers associated with family id (insert check for only one associated)
     # -[will] build dict of subject info objects to be compared as usual, but with appropriate cohort identifier attached
 
