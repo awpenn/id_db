@@ -58,6 +58,7 @@ def connect_database(DBIP, DBPASS, DBPORT, DB, DBUSER):
 
     except (Exception, psycopg2.Error) as error:
         print('Error in database connection', error)
+    
 
     finally:
         if(connection):
@@ -234,7 +235,7 @@ def write_to_database(records_to_database_dict):
                 # error_log[key] = [value, "No adsp_family_id was found for this subject's site_family_id"]
                 make_fam_id = input("Do you want to generate a new ADSP_family_id for this site_family_id?(y/n)")
                 if(make_fam_id == 'y'):
-                    print('making fam id, finding last made family id for ' + cohort_identifier )
+                    print(f'making fam id, finding last made family id for {cohort_identifier}')
                     cursor.execute(f"SELECT adsp_family_id FROM lookup WHERE identifier_code = '{cohort_identifier}' AND adsp_family_id IS NOT NULL ORDER BY adsp_family_id DESC LIMIT 1")
                     retrieved_adsp_family = cursor.fetchall()
                     
@@ -243,8 +244,7 @@ def write_to_database(records_to_database_dict):
                         error_log[key] = [value, "Error: Attempted to create new adsp_family_id, but no adsp_family_ids found associated with this cohort."]
                         continue
                     else:
-                        print('seems to have retrieved something')
-                        print(retrieved_adsp_family[0])
+                        print(f'An adsp_family_id was returned as last made for {cohort_identifier}')
                         most_recent_family_id = retrieved_adsp_family[0][0]
                         print(retrieved_adsp_family)
                         prefix = most_recent_family_id[:2]
