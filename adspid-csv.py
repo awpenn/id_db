@@ -136,7 +136,7 @@ def legacy_check(legacy_check_dict, callback):
         cohort = value[3]
 
         cursor = connection.cursor()
-        cursor.execute(f"SELECT DISTINCT identifier_code FROM lookup WHERE site_fam_id = '{query_family_id}'")
+        cursor.execute(f"SELECT DISTINCT cohort_identifier_code FROM lookup WHERE site_fam_id = '{query_family_id}'")
         returned_cohort_code_tuple = cursor.fetchall()
         print(f'length of tuple returned for family_id {query_family_id} fetch is {len(returned_cohort_code_tuple)}')
 
@@ -211,8 +211,6 @@ def write_to_database(records_to_database_dict):
         else:
             id_prefix = "A"
 
-
-
         ## initialized as 0, will change if fam is switched on
         adsp_family_id = 0
 
@@ -236,7 +234,7 @@ def write_to_database(records_to_database_dict):
                 make_fam_id = input("Do you want to generate a new ADSP_family_id for this site_family_id?(y/n)")
                 if(make_fam_id == 'y'):
                     print(f'making fam id, finding last made family id for {cohort_identifier}')
-                    cursor.execute(f"SELECT adsp_family_id FROM lookup WHERE identifier_code = '{cohort_identifier}' AND adsp_family_id IS NOT NULL ORDER BY adsp_family_id DESC LIMIT 1")
+                    cursor.execute(f"SELECT adsp_family_id FROM lookup WHERE cohort_identifier_code = '{cohort_identifier}' AND adsp_family_id IS NOT NULL ORDER BY adsp_family_id DESC LIMIT 1")
                     retrieved_adsp_family = cursor.fetchall()
                     
                     if len(retrieved_adsp_family) < 1:
@@ -257,7 +255,7 @@ def write_to_database(records_to_database_dict):
                 else:
                     continue
 
-        cursor.execute(f"SELECT adsp_indiv_partial_id FROM builder_lookup WHERE identifier_code = '{cohort_identifier}' ORDER BY adsp_indiv_partial_id DESC LIMIT 1")
+        cursor.execute(f"SELECT adsp_indiv_partial_id FROM builder_lookup WHERE cohort_identifier_code = '{cohort_identifier}' ORDER BY adsp_indiv_partial_id DESC LIMIT 1")
         retrieved_partial = cursor.fetchall()
 
         if len(retrieved_partial) < 1:
