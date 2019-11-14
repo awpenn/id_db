@@ -12,7 +12,7 @@ success_id_log = []
 error_log = {}
 special_cohorts = ['LOAD', 'RAS', 'UPN'] #change to correct codes for production
 g_cohorts = ["KGAD", "NIMH", "ADNI", "CCS"]
-load_file = "wow.csv"
+load_file = "test.csv"
 family_data_creation = False
 
 def main():
@@ -238,13 +238,13 @@ def write_to_database(records_to_database_dict):
                     cursor.execute(f"SELECT adsp_family_id FROM lookup WHERE identifier_code = '{cohort_identifier}' AND adsp_family_id IS NOT NULL ORDER BY adsp_family_id DESC LIMIT 1")
                     retrieved_adsp_family = cursor.fetchall()
                     
-                    ## fix, even cursor.fetchall = 'none' tuple will have a length
                     if len(retrieved_adsp_family) < 1:
-                        print(f'No adsp_family_id found associated with cohort {cohort_identifier}')
+                        print(retrieved_adsp_family)
                         error_log[key] = [value, "Error: Attempted to create new adsp_family_id, but no adsp_family_ids found associated with this cohort."]
                         continue
                     else:
                         print('seems to have retrieved something')
+                        print(retrieved_adsp_family[0])
                         most_recent_family_id = retrieved_adsp_family[0][0]
                         print(retrieved_adsp_family)
                         prefix = most_recent_family_id[:2]
