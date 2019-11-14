@@ -11,7 +11,8 @@ new_records = []
 success_id_log = []
 error_log = {}
 special_cohorts = ['LOAD', 'RAS', 'UPN'] #change to correct codes for production
-load_file = "ras-newids.csv"
+g_cohorts = ["KGAD", "NIMH", "ADNI", "CCS"]
+load_file = "wow.csv"
 family_data_creation = False
 
 def main():
@@ -204,6 +205,13 @@ def write_to_database(records_to_database_dict):
 
         cohort_identifier = value[3]
 
+        if cohort_identifier in g_cohorts:
+            id_prefix = "G"
+        else:
+            id_prefix = "A"
+
+
+
         ## initialized as 0, will change if fam is switched on
         adsp_family_id = 0
 
@@ -226,16 +234,19 @@ def write_to_database(records_to_database_dict):
                 # error_log[key] = [value, "No adsp_family_id was found for this subject's site_family_id"]
                 make_fam_id = input("Do you want to generate a new ADSP_family_id for this site_family_id?(y/n)")
                 if(make_fam_id == 'y'):
-                    print('making fam id')
-                    cursor.execute(f"SELECT adsp_family_id FROM lookup WHERE identifier_code = '{cohort_identifier}' ORDER BY adsp_family_id DESC LIMIT 1")
+                    print('making fam id, finding last made family id for ' + cohort_identifier )
+                    cursor.execute(f"SELECT adsp_family_id FROM lookup WHERE identifier_code = '{cohort_identifier}' AND adsp_family_id IS NOT NULL ORDER BY adsp_family_id DESC LIMIT 1")
                     retrieved_adsp_family = cursor.fetchall()
-
+                    
+                    ## fix, even cursor.fetchall = 'none' tuple will have a length
                     if len(retrieved_adsp_family) < 1:
                         print(f'No adsp_family_id found associated with cohort {cohort_identifier}')
                         error_log[key] = [value, "Error: Attempted to create new adsp_family_id, but no adsp_family_ids found associated with this cohort."]
                         continue
                     else:
+                        print('seems to have retrieved something')
                         most_recent_family_id = retrieved_adsp_family[0][0]
+                        print(retrieved_adsp_family)
                         prefix = most_recent_family_id[:2]
                         id_numeric_end = len(most_recent_family_id)-1
                         incremental = int(most_recent_family_id[2:id_numeric_end])+1
@@ -263,7 +274,7 @@ def write_to_database(records_to_database_dict):
 
             adsp_indiv_partial_id = f'{prefix}{str(incremental).zfill(6)}'
 
-            adsp_id = f'A-{cohort_identifier}-{adsp_indiv_partial_id}'
+            adsp_id = f'{id_prefix}-{cohort_identifier}-{adsp_indiv_partial_id}'
 
             cursor.execute(f"INSERT INTO generated_ids (site_fam_id, site_indiv_id, cohort_identifier_code, site_combined_id, adsp_family_id, adsp_indiv_partial_id, adsp_id, subject_type) VALUES ('{site_fam_id}','{site_indiv_id}',{cohort_identifier_id},'{site_combined_id}','{adsp_family_id}','{adsp_indiv_partial_id}','{adsp_id}','{subject_type}')")
             connection.commit()
