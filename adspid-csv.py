@@ -91,10 +91,10 @@ def create_dict():
         adspid = row[1]
         site_fam = row[2]
         site_indiv_id = row[3]
-        cohort = row[4]
+        cohort_identifier_code = row[4]
         lookup_id = row[5]
         
-        current_records_dict[f'{cohort}-{lookup_id}'] = row
+        current_records_dict[f'{cohort_identifier_code}-{lookup_id}'] = row
 
     with open(f'./source_files/{load_file}', mode='r', encoding='utf-8-sig') as csv_file:
         new_records = csv.reader(csv_file)
@@ -107,17 +107,17 @@ def create_dict():
                 lookup_id = f'{site_fam_id}_{site_indiv_id}'
             else:
                 lookup_id = site_indiv_id
-            cohort = row[2]
+            cohort_identifier_code = row[2]
             
             row.insert(2, lookup_id)
             ## add conditional to check case/fam switch selected at beginning
-            if cohort in special_cohorts and family_data_creation:
+            if cohort_identifier_code in special_cohorts and family_data_creation:
                 if '26_' in site_fam_id or '26-' in site_fam_id:
-                    legacy_check_dict[f'{cohort}-{lookup_id}'] = row
+                    legacy_check_dict[f'{cohort_identifier_code}-{lookup_id}'] = row
                 else:
-                    new_records_dict[f'{cohort}-{lookup_id}'] = row
+                    new_records_dict[f'{cohort_identifier_code}-{lookup_id}'] = row
             else:
-                new_records_dict[f'{cohort}-{lookup_id}'] = row
+                new_records_dict[f'{cohort_identifier_code}-{lookup_id}'] = row
 
     if len(legacy_check_dict) > 0:
 
@@ -138,7 +138,7 @@ def legacy_check(legacy_check_dict, callback):
         query_family_id = value[0]
         site_indiv_id = value[1]
         lookup_id = value[2]
-        cohort = value[3]
+        cohort_identifier_code = value[3]
 
         cursor = connection.cursor()
         cursor.execute(f"SELECT DISTINCT cohort_identifier_code FROM lookup WHERE site_fam_id = '{query_family_id}'")
@@ -209,9 +209,9 @@ def write_to_database(records_to_database_dict):
             lookup_id = value[2]
             subject_type = 'family'
 
-        cohort_identifier = value[3]
+        cohort_identifier_code = value[3]
 
-        if cohort_identifier in g_cohorts:
+        if cohort_identifier_code in g_cohorts:
             id_prefix = "G"
         else:
             id_prefix = "A"
@@ -221,7 +221,7 @@ def write_to_database(records_to_database_dict):
 
         ## get cohort id
         cursor = connection.cursor()
-        cursor.execute(f"SELECT DISTINCT id FROM cohort_identifier_codes WHERE cohort_identifier_code = '{cohort_identifier}'")
+        cursor.execute(f"SELECT DISTINCT id FROM cohort_identifier_codes WHERE cohort_identifier_code = '{cohort_identifier_code}'")
         retrieved_cohort_id = cursor.fetchall()
         for row in retrieved_cohort_id:
             cohort_identifier_code_key = row[0]
@@ -238,16 +238,16 @@ def write_to_database(records_to_database_dict):
                 # error_log[key] = [value, "No adsp_family_id was found for this subject's site_family_id"]
                 make_fam_id = input("Do you want to generate a new ADSP_family_id for this site_family_id?(y/n)")
                 if(make_fam_id == 'y'):
-                    print(f'making fam id, finding last made family id for {cohort_identifier}')
-                    cursor.execute(f"SELECT adsp_family_id FROM lookup WHERE cohort_identifier_code = '{cohort_identifier}' AND adsp_family_id IS NOT NULL ORDER BY adsp_family_id DESC LIMIT 1")
+                    print(f'making fam id, finding last made family id for {cohort_identifier_code}')
+                    cursor.execute(f"SELECT adsp_family_id FROM lookup WHERE cohort_identifier_code = '{cohort_identifier_code}' AND adsp_family_id IS NOT NULL ORDER BY adsp_family_id DESC LIMIT 1")
                     retrieved_adsp_family = cursor.fetchall()
-                    
+                    _code
                     if len(retrieved_adsp_family) < 1:
                         print(retrieved_adsp_family)
                         error_log[key] = [value, "Error: Attempted to create new adsp_family_id, but no adsp_family_ids found associated with this cohort."]
                         continue
                     else:
-                        print(f'An adsp_family_id was returned as last made for {cohort_identifier}')
+                        print(f'An adsp_family_id was returned as last made for {cohort_identifier_code}')
                         most_recent_family_id = retrieved_adsp_family[0][0]
                         print(retrieved_adsp_family)
                         prefix = most_recent_family_id[:2]
@@ -261,14 +261,14 @@ def write_to_database(records_to_database_dict):
                     print('No adsp family id will be created. "0" will be assigned')
                     adsp_family_id = 0
 
-
-        cursor.execute(f"SELECT adsp_indiv_partial_id FROM builder_lookup WHERE cohort_identifier_code = '{cohort_identifier}' ORDER BY adsp_indiv_partial_id DESC LIMIT 1")
+        ## `builder_lookup` ignores validity flag when looking for the latest adsp_partial_id created, so doesnt duplicate one that was created and made not valid
+        cursor.execute(f"SELECT adsp_indiv_partial_id FROM builder_lookup WHERE cohort_identifier_code = '{cohort_identifier_code}' ORDER BY adsp_indiv_partial_id DESC LIMIT 1")
         retrieved_partial = cursor.fetchall()
 
         if len(retrieved_partial) < 1:
-            print(f"No adsp_indiv_partial found associated with {cohort_identifier}.  Check that you're using the correct cohort identifier code (letter-based). No record will be created.")
+            print(f"No adsp_indiv_partial found associated with {cohort_identifier_code}.  Check that you're using the correct cohort identifier code (letter-based). No record will be created.")
             
-            error_log[key] = [value, f"Error: No indiv_partial was returned when queried for cohort code: {cohort_identifier}. Check that letter code and not table key is in loadfile."]
+            error_log[key] = [value, f"Error: No indiv_partial was returned when queried for cohort code: {cohort_identifier_code}. Check that letter code and not table key is in loadfile."]
         else:
 
             for row in retrieved_partial:
@@ -279,7 +279,7 @@ def write_to_database(records_to_database_dict):
 
             adsp_indiv_partial_id = f'{prefix}{str(incremental).zfill(6)}'
 
-            adsp_id = f'{id_prefix}-{cohort_identifier}-{adsp_indiv_partial_id}'
+            adsp_id = f'{id_prefix}-{cohort_identifier_code}-{adsp_indiv_partial_id}'
 
             cursor.execute(f"INSERT INTO generated_ids (site_fam_id, site_indiv_id, cohort_identifier_code_key, lookup_id, adsp_family_id, adsp_indiv_partial_id, adsp_id, subject_type) VALUES ('{site_fam_id}','{site_indiv_id}',{cohort_identifier_code_key},'{lookup_id}','{adsp_family_id}','{adsp_indiv_partial_id}','{adsp_id}','{subject_type}')")
             connection.commit()
@@ -294,7 +294,7 @@ def generate_errorlog():
         f.write(f'family_site_id: {value[0][0]}\n')
         f.write(f'indiv_site_id: {value[0][1]}\n')
         f.write(f'combined_site_id: {value[0][2]}\n')
-        f.write(f'cohort code: {value[0][3]}\n\n')
+        f.write(f'cohort_identifier_code: {value[0][3]}\n\n')
 
 def generate_success_list():
     timestamp = calendar.timegm(time.gmtime())
