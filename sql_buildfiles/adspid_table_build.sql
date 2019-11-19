@@ -6,7 +6,7 @@ CREATE TYPE "public"."subject_type" AS ENUM('case/control', 'family', 'other');
 	/*cohort identifier code table*/
 	CREATE TABLE IF NOT EXISTS "cohort_identifier_codes" (
 		"id" SERIAL NOT NULL,
-		"identifier_code" VARCHAR(10) NOT NULL,
+		"cohort_identifier_code" VARCHAR(10) NOT NULL,
 		"full_sitename" VARCHAR(100),
 		"description" VARCHAR (100),
 		"createdat" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT current_timestamp,
@@ -21,17 +21,17 @@ CREATE TYPE "public"."subject_type" AS ENUM('case/control', 'family', 'other');
 			--non-ADSP family id (site specific)
 		"site_indiv_id" VARCHAR (50),
 			--non-ADSP individual id (site specific)
-		"cohort_identifier_code" INTEGER REFERENCES "cohort_identifier_codes" ("id")
+		"cohort_identifier_code_key" INTEGER REFERENCES "cohort_identifier_codes" ("id")
 			ON DELETE SET NULL ON UPDATE CASCADE,
-			--3 or 4 letter code for site/cohort
-		"site_combined_id" VARCHAR(50),
+			--FKEY for lettered code assigned to cohort from `cohort_identifier_code` table
+		"lookup_id" VARCHAR(50),
 			--non-ADSP combined family and individual ids
 		"adsp_family_id" VARCHAR(50),
 		"adsp_indiv_partial_id" VARCHAR(50),
 			--unique part of generated ADSP ID for individual
 		"adsp_id" VARCHAR(50) UNIQUE,
 		"comments" VARCHAR (500),
-		"valid" BOOLEAN NOT NULL DEFAULT FALSE, 
+		"valid" BOOLEAN NOT NULL DEFAULT TRUE, 
 			--boolean indicating whether id is valid.
 		"subject_type" "public"."subject_type" DEFAULT 'other',
 			--enum list with values case/control, family, and other, indicating subject is member of case/control or family study

@@ -25,16 +25,21 @@ def main():
     global family_data_creation
     
     select_casefam = input("Are you loading family data? (y/n)")
-    if select_casefam == 'y':
-        family_data_creation = True
-        print('family ids will be checked and generated.')
-    if select_casefam == 'n':
-        print('family ids will not be checked and generated.')
+    if select_casefam not in ['y', 'n', 'Y', 'N', 'yes', 'no', 'YES', 'NO', 'Yes', 'No']:
+        main()
+
+    else:
+        if select_casefam in ['y', 'Y', 'yes', 'Yes', 'YES']:
+            family_data_creation = True
+            print('family ids will be checked and generated.')
+            connect_database(DBIP, DBPASS, DBPORT, DB, DBUSER)
+            
+        if select_casefam in ['n', 'N', 'no', 'No', 'NO']:
+            print('family ids will not be checked and generated.')
+            connect_database(DBIP, DBPASS, DBPORT, DB, DBUSER)
 
 
 
-
-    connect_database(DBIP, DBPASS, DBPORT, DB, DBUSER)
 
 def connect_database(DBIP, DBPASS, DBPORT, DB, DBUSER):
     global current_records
@@ -87,9 +92,9 @@ def create_dict():
         site_fam = row[2]
         site_indiv_id = row[3]
         cohort = row[4]
-        site_combined_id = row[5]
+        lookup_id = row[5]
         
-        current_records_dict[f'{cohort}-{site_combined_id}'] = row
+        current_records_dict[f'{cohort}-{lookup_id}'] = row
 
     with open(f'./source_files/{load_file}', mode='r', encoding='utf-8-sig') as csv_file:
         new_records = csv.reader(csv_file)
@@ -99,20 +104,20 @@ def create_dict():
             site_indiv_id = row[1]
             ## if looking at family data, make combined id with site_fam_id + site_indiv_id, else is same as indiv_id
             if family_data_creation:
-                site_combined_id = f'{site_fam_id}_{site_indiv_id}'
+                lookup_id = f'{site_fam_id}_{site_indiv_id}'
             else:
-                site_combined_id = site_indiv_id
+                lookup_id = site_indiv_id
             cohort = row[2]
             
-            row.insert(2, site_combined_id)
+            row.insert(2, lookup_id)
             ## add conditional to check case/fam switch selected at beginning
             if cohort in special_cohorts and family_data_creation:
                 if '26_' in site_fam_id or '26-' in site_fam_id:
-                    legacy_check_dict[f'{cohort}-{site_combined_id}'] = row
+                    legacy_check_dict[f'{cohort}-{lookup_id}'] = row
                 else:
-                    new_records_dict[f'{cohort}-{site_combined_id}'] = row
+                    new_records_dict[f'{cohort}-{lookup_id}'] = row
             else:
-                new_records_dict[f'{cohort}-{site_combined_id}'] = row
+                new_records_dict[f'{cohort}-{lookup_id}'] = row
 
     if len(legacy_check_dict) > 0:
 
@@ -132,7 +137,7 @@ def legacy_check(legacy_check_dict, callback):
     for key, value in legacy_check_dict.items():
         query_family_id = value[0]
         site_indiv_id = value[1]
-        site_combined_id = value[2]
+        lookup_id = value[2]
         cohort = value[3]
 
         cursor = connection.cursor()
@@ -155,7 +160,7 @@ def legacy_check(legacy_check_dict, callback):
 
                     if var[0] in special_cohorts:
                         returned_cohort_code = var[0]
-                        processed_legacy_dict[f'{returned_cohort_code}-{site_combined_id}'] = [query_family_id, site_indiv_id, site_combined_id, returned_cohort_code]
+                        processed_legacy_dict[f'{returned_cohort_code}-{lookup_id}'] = [query_family_id, site_indiv_id, lookup_id, returned_cohort_code]
                     
                     else:
                         error_log[key] = [value, "More than one cohort found for subject in legacy check, and none found matching legacy conditions. Check your loadfile and the database."]
@@ -166,7 +171,7 @@ def legacy_check(legacy_check_dict, callback):
                 error_log[key] = [value, "No cohort was found for the family of this subject, suggesting it is new. NIALOAD was assigned, but check for correctness."]
 
 
-        processed_legacy_dict[f'{returned_cohort_code}-{site_combined_id}'] = [query_family_id, site_indiv_id, site_combined_id, returned_cohort_code]
+        processed_legacy_dict[f'{returned_cohort_code}-{lookup_id}'] = [query_family_id, site_indiv_id, lookup_id, returned_cohort_code]
 
     callback(processed_legacy_dict)
 
@@ -198,10 +203,10 @@ def write_to_database(records_to_database_dict):
         site_fam_id = value[0]
         site_indiv_id = value[1]
         if not family_data_creation:
-            site_combined_id = site_indiv_id
+            lookup_id = site_indiv_id
             subject_type = 'case/control'
         else:
-            site_combined_id = value[2]
+            lookup_id = value[2]
             subject_type = 'family'
 
         cohort_identifier = value[3]
@@ -216,14 +221,14 @@ def write_to_database(records_to_database_dict):
 
         ## get cohort id
         cursor = connection.cursor()
-        cursor.execute(f"SELECT DISTINCT id FROM cohort_identifier_codes WHERE identifier_code = '{cohort_identifier}'")
+        cursor.execute(f"SELECT DISTINCT id FROM cohort_identifier_codes WHERE cohort_identifier_code = '{cohort_identifier}'")
         retrieved_cohort_id = cursor.fetchall()
         for row in retrieved_cohort_id:
-            cohort_identifier_id = row[0]
+            cohort_identifier_code_key = row[0]
 
-        ## get adsp_family_id or flag if none exists, IF family id switch is True
+        ## get adsp_family_id based on site_fam_id AND the cohort retrieved above, or flag if none exists, IF family id switch is True
         if family_data_creation:
-            cursor.execute(f"SELECT DISTINCT adsp_family_id FROM generated_ids WHERE site_fam_id = '{site_fam_id}'")
+            cursor.execute(f"SELECT DISTINCT adsp_family_id FROM generated_ids WHERE site_fam_id = '{site_fam_id}' AND cohort_identifier_code_key = '{cohort_identifier_code_key}'")
             retrieved_fam_id = cursor.fetchall()
             if len(retrieved_fam_id) > 0:
                 for row in retrieved_fam_id:
@@ -253,7 +258,9 @@ def write_to_database(records_to_database_dict):
                         adsp_family_id = f'{prefix}{str(incremental).zfill(4)}F'
             
                 else:
-                    continue
+                    print('No adsp family id will be created. "0" will be assigned')
+                    adsp_family_id = 0
+
 
         cursor.execute(f"SELECT adsp_indiv_partial_id FROM builder_lookup WHERE cohort_identifier_code = '{cohort_identifier}' ORDER BY adsp_indiv_partial_id DESC LIMIT 1")
         retrieved_partial = cursor.fetchall()
@@ -274,7 +281,7 @@ def write_to_database(records_to_database_dict):
 
             adsp_id = f'{id_prefix}-{cohort_identifier}-{adsp_indiv_partial_id}'
 
-            cursor.execute(f"INSERT INTO generated_ids (site_fam_id, site_indiv_id, cohort_identifier_code, site_combined_id, adsp_family_id, adsp_indiv_partial_id, adsp_id, subject_type) VALUES ('{site_fam_id}','{site_indiv_id}',{cohort_identifier_id},'{site_combined_id}','{adsp_family_id}','{adsp_indiv_partial_id}','{adsp_id}','{subject_type}')")
+            cursor.execute(f"INSERT INTO generated_ids (site_fam_id, site_indiv_id, cohort_identifier_code_key, lookup_id, adsp_family_id, adsp_indiv_partial_id, adsp_id, subject_type) VALUES ('{site_fam_id}','{site_indiv_id}',{cohort_identifier_code_key},'{lookup_id}','{adsp_family_id}','{adsp_indiv_partial_id}','{adsp_id}','{subject_type}')")
             connection.commit()
             success_id_log.append(adsp_id)
 
@@ -299,5 +306,6 @@ def generate_success_list():
             f.write(id + ", ")
 
     f.close()
+
 if __name__ == "__main__":
     main()
