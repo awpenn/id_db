@@ -1,9 +1,10 @@
 /*DROP AND RECREATE*/
+DROP VIEW IF EXISTS lookup_aliases;
 DROP VIEW IF EXISTS lookup;
 DROP VIEW IF EXISTS builder_lookup;
 DROP VIEW IF EXISTS lookup_cc;
 DROP VIEW IF EXISTS lookup_fam;
-DROP VIEW IF EXISTS lookup_aliases;
+
 
 /*Views creation*/
 
@@ -40,8 +41,15 @@ DROP VIEW IF EXISTS lookup_aliases;
 		ON generated_ids.cohort_identifier_code_key = cohort_identifier_codes.id WHERE "subject_type" = 'family' AND "valid" = TRUE;
 		
 	/*create view to generated table of records in generated_ids that have associated alias ids*/
-	/*need to spell out the fields because some duplicate*/
 	CREATE VIEW lookup_aliases AS
-	SELECT alias_site_indiv_id AS alias_id, generated_ids.adsp_id AS adsp_id, site_fam_id, cohort_identifier_codes.cohort_identifier_code, lookup_id, adsp_family_id, valid, subject_type FROM alias_ids
-		JOIN generated_ids ON alias_ids.adsp_id=generated_ids.adsp_id
-		JOIN cohort_identifier_codes ON generated_ids.cohort_identifier_code_key=cohort_identifier_codes.id;
+	SELECT alias_site_indiv_id as alias_id, lookup.site_indiv_id, lookup.lookup_id, lookup.adsp_id, lookup.cohort_identifier_code
+		FROM alias_ids
+		JOIN lookup
+		ON alias_ids.generated_ids_lookup_id=lookup.lookup_id
+		WHERE alias_ids.generated_ids_lookup_id=lookup.lookup_id
+			AND alias_ids.cohort_identifier_code=lookup.cohort_identifier_code
+	
+
+		
+		
+		

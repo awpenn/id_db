@@ -41,13 +41,16 @@ CREATE TYPE "public"."subject_type" AS ENUM('case/control', 'family', 'other');
 	
 	/*create table to manage tracking alias ids for records in generated_ids, ie. when data comes in from site where there are multiple site ids for the same
 	subject, one is chosen and given a record in generated_ids, but the other ids still need to be recorded*/
+
 	CREATE TABLE IF NOT EXISTS "alias_ids"(
 		"id" SERIAL NOT NULL,
 			--PK for table
 		"alias_site_indiv_id" VARCHAR(50) NOT NULL,
 			--id that doesn't serve as primary site_indiv_id for a record in generated_ids table, but which is still associated with said record as alias id.
-		"adsp_id" VARCHAR(50)
-			--adsp_id for record in generated_ids to which the alias_site_indiv_id is linked.
+		"generated_ids_lookup_id" VARCHAR(50),
+			--lookup_id for record in generated_ids to which the alias_site_indiv_id is linked.
+		"cohort_identifier_code" VARCHAR(50)
+		    --lettered cohort code for subject
 	);
 	
 	/*for testing python, not production*/
