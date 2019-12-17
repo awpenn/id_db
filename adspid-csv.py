@@ -39,11 +39,6 @@ def main():
             print('family ids will not be checked and generated.')
     
     create_dict()
-    generate_errorlog()
-    generate_success_list()
-
-
-
 
 def database_connection(query):
     try:
@@ -55,11 +50,13 @@ def database_connection(query):
             connection.commit()
             cursor.close()
             connection.close()
+            
         else:
             returned_array = cursor.fetchall()
-            return returned_array
             cursor.close()
             connection.close()
+            
+            return returned_array
 
     except (Exception, psycopg2.Error) as error:
         print('Error in database connection', error)
@@ -70,7 +67,6 @@ def database_connection(query):
             cursor.close()
             connection.close()
             print('database connection closed')
-
 
 def create_dict(): 
 
@@ -305,3 +301,5 @@ def generate_success_list():
 
 if __name__ == '__main__':
     main()
+    generate_errorlog()
+    generate_success_list()
