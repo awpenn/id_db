@@ -270,7 +270,7 @@ def write_to_database(records_to_database_dict):
         retrieved_partial = cursor.fetchall()
 
         if len(retrieved_partial) < 1:
-            print(f'No adsp_indiv_partial found associated with {cohort_identifier_code}.  Check that you're using the correct cohort identifier code (letter-based). No record will be created.')
+            print(f"No adsp_indiv_partial found associated with {cohort_identifier_code}.  Check that you're using the correct cohort identifier code (letter-based). No record will be created.")
             
             error_log[key] = [value, f'Error: No indiv_partial was returned when queried for cohort code: {cohort_identifier_code}. Check that letter code and not table key is in loadfile.']
         else:
