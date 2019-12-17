@@ -20,6 +20,7 @@ current_samples_ids = []
 new_samples_initial_dict = {}
 new_samples_for_database_dict = {}
 marked_as_duplicate_dict = {}
+error_list = []
 
 def main():
     create_existing_ids_list()
@@ -27,6 +28,9 @@ def main():
     look_for_duplicates()
     write_to_database()
     generate_duplicate_report()
+
+    if len(error_list) > 0:
+        write_error_log()
 
 def database_connection(query):
     returned_array = []
@@ -45,15 +49,14 @@ def database_connection(query):
         connection.close()
 
     except (Exception, psycopg2.Error) as error:
-        print('Error in database connection', error)
-
+        # print('Error in database connection', error)
+        error_list.append(error)
+        
     finally:
         if(connection):
             cursor.close()
             connection.close()
             print('database connection closed')
-
-    # return returned_array
  
 def create_existing_ids_list():
     current_samples = database_connection("select * from sample_ids")
@@ -101,6 +104,15 @@ def generate_duplicate_report():
         f.write(f'subject-adsp_id: {record[3]}\n\n')
     
     f.write('\n\n\n Please alter these ids to generate uniqueness and re-submit.')
+    f.close()
+
+def write_error_log():
+    timestamp = calendar.timegm(time.gmtime())
+    f = open(f'./log_files/{timestamp}-error-log.txt', 'w+')
+    f.write(f'{str(len(error_list))} error(s) occured during data check and load. See details below: \n\n')
+    for error in error_list:
+        f.write(f"Error:\n {error}\n")
+    
     f.close()
 
 if __name__ == '__main__':
