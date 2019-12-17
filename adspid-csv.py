@@ -6,7 +6,6 @@ import os
 import calendar
 import time
 
-current_records = []
 new_records = []
 success_id_log = []
 error_log = {}
@@ -16,13 +15,15 @@ c_cohorts = ['ARIC', 'ASPS', 'CHS', 'ERF', 'FHS', 'RS']
 load_file = 'test.csv'
 family_data_creation = False
 
+load_dotenv()
+DBIP = os.getenv('DBIP')
+DBPASS = os.getenv('DBPASS')
+DBPORT = os.getenv('DBPORT')
+DB = os.getenv('DB')
+DBUSER = os.getenv('DBUSER')
+
 def main():
-    load_dotenv()
-    DBIP = os.getenv('DBIP')
-    DBPASS = os.getenv('DBPASS')
-    DBPORT = os.getenv('DBPORT')
-    DB = os.getenv('DB')
-    DBUSER = os.getenv('DBUSER')
+    
     global family_data_creation
     
     select_casefam = input('Are you loading family data? (y/n)')
@@ -33,34 +34,32 @@ def main():
         if select_casefam in ['y', 'Y', 'yes', 'Yes', 'YES']:
             family_data_creation = True
             print('family ids will be checked and generated.')
-            connect_database(DBIP, DBPASS, DBPORT, DB, DBUSER)
             
         if select_casefam in ['n', 'N', 'no', 'No', 'NO']:
             print('family ids will not be checked and generated.')
-            connect_database(DBIP, DBPASS, DBPORT, DB, DBUSER)
+    
+    create_dict()
+    generate_errorlog()
+    generate_success_list()
 
 
 
 
-def connect_database(DBIP, DBPASS, DBPORT, DB, DBUSER):
-    global current_records
-    global connection
-    load_dotenv()
-
+def database_connection(query):
     try:
-        connection = psycopg2.connect(
-                        user = DBUSER,
-                        password = DBPASS,
-                        host = DBIP,
-                        port = DBPORT,
-                        database = DB
-                    )
-
+        connection = psycopg2.connect(user = DBUSER, password = DBPASS, host = DBIP, port = DBPORT, database = DB)
         cursor = connection.cursor()
-        cursor.execute('SELECT * FROM lookup')
+        cursor.execute(query)
 
-        current_records = cursor.fetchall()
-        create_dict()
+        if "INSERT" in query:
+            connection.commit()
+            cursor.close()
+            connection.close()
+        else:
+            returned_array = cursor.fetchall()
+            return returned_array
+            cursor.close()
+            connection.close()
 
     except (Exception, psycopg2.Error) as error:
         print('Error in database connection', error)
@@ -71,8 +70,7 @@ def connect_database(DBIP, DBPASS, DBPORT, DB, DBUSER):
             cursor.close()
             connection.close()
             print('database connection closed')
-            generate_errorlog()
-            generate_success_list()
+
 
 def create_dict(): 
 
@@ -85,6 +83,8 @@ def create_dict():
 
         combined_new_records_dict = {**new_records_dict, **processed_legacy_dict}
         compare(current_records_dict, combined_new_records_dict)
+
+    current_records = database_connection('SELECT * FROM lookup')
 
     for row in current_records:
         #mostly just for reference to variables in the cr dict
@@ -141,9 +141,7 @@ def legacy_check(legacy_check_dict, callback):
         lookup_id = value[2]
         cohort_identifier_code = value[3]
 
-        cursor = connection.cursor()
-        cursor.execute(f"SELECT DISTINCT cohort_identifier_code FROM lookup WHERE site_fam_id = '{query_family_id}'")
-        returned_cohort_code_tuple = cursor.fetchall()
+        returned_cohort_code_tuple = database_connection(f"SELECT DISTINCT cohort_identifier_code FROM lookup WHERE site_fam_id = '{query_family_id}'")
         print(f'length of tuple returned for family_id {query_family_id} fetch is {len(returned_cohort_code_tuple)}')
 
         if len(returned_cohort_code_tuple) == 1 :
@@ -224,16 +222,13 @@ def write_to_database(records_to_database_dict):
         adsp_family_id = 0
 
         ## get cohort id
-        cursor = connection.cursor()
-        cursor.execute(f"SELECT DISTINCT id FROM cohort_identifier_codes WHERE cohort_identifier_code = '{cohort_identifier_code}'")
-        retrieved_cohort_id = cursor.fetchall()
+        retrieved_cohort_id = database_connection(f"SELECT DISTINCT id FROM cohort_identifier_codes WHERE cohort_identifier_code = '{cohort_identifier_code}'")
         for row in retrieved_cohort_id:
             cohort_identifier_code_key = row[0]
 
         ## get adsp_family_id based on site_fam_id AND the cohort retrieved above, or flag if none exists, IF family id switch is True
         if family_data_creation:
-            cursor.execute(f"SELECT DISTINCT adsp_family_id FROM generated_ids WHERE site_fam_id = '{site_fam_id}' AND cohort_identifier_code_key = '{cohort_identifier_code_key}'")
-            retrieved_fam_id = cursor.fetchall()
+            retrieved_fam_id = database_connection(f"SELECT DISTINCT adsp_family_id FROM generated_ids WHERE site_fam_id = '{site_fam_id}' AND cohort_identifier_code_key = '{cohort_identifier_code_key}'")
             if len(retrieved_fam_id) > 0:
                 for row in retrieved_fam_id:
                     adsp_family_id = row[0]   
@@ -243,9 +238,8 @@ def write_to_database(records_to_database_dict):
                 make_fam_id = input('Do you want to generate a new ADSP_family_id for this site_family_id?(y/n)')
                 if(make_fam_id == 'y'):
                     print(f'making fam id, finding last made family id for {cohort_identifier_code}')
-                    cursor.execute(f"SELECT adsp_family_id FROM lookup WHERE cohort_identifier_code = '{cohort_identifier_code}' AND adsp_family_id IS NOT NULL ORDER BY adsp_family_id DESC LIMIT 1")
-                    retrieved_adsp_family = cursor.fetchall()
-                    _code
+                    retrieved_adsp_family = database_connection(f"SELECT adsp_family_id FROM lookup WHERE cohort_identifier_code = '{cohort_identifier_code}' AND adsp_family_id IS NOT NULL ORDER BY adsp_family_id DESC LIMIT 1")
+
                     if len(retrieved_adsp_family) < 1:
                         print(retrieved_adsp_family)
                         error_log[key] = [value, 'Error: Attempted to create new adsp_family_id, but no adsp_family_ids found associated with this cohort.']
@@ -266,8 +260,7 @@ def write_to_database(records_to_database_dict):
                     adsp_family_id = 0
 
         ## `builder_lookup` ignores validity flag when looking for the latest adsp_partial_id created, so doesnt duplicate one that was created and made not valid
-        cursor.execute(f"SELECT adsp_indiv_partial_id FROM builder_lookup WHERE cohort_identifier_code = '{cohort_identifier_code}' ORDER BY adsp_indiv_partial_id DESC LIMIT 1")
-        retrieved_partial = cursor.fetchall()
+        retrieved_partial = database_connection(f"SELECT adsp_indiv_partial_id FROM builder_lookup WHERE cohort_identifier_code = '{cohort_identifier_code}' ORDER BY adsp_indiv_partial_id DESC LIMIT 1")
 
         if len(retrieved_partial) < 1:
             print(f"No adsp_indiv_partial found associated with {cohort_identifier_code}.  Check that you're using the correct cohort identifier code (letter-based). No record will be created.")
@@ -285,8 +278,7 @@ def write_to_database(records_to_database_dict):
 
             adsp_id = f'{id_prefix}-{cohort_identifier_code}-{adsp_indiv_partial_id}'
 
-            cursor.execute(f"INSERT INTO generated_ids (site_fam_id, site_indiv_id, cohort_identifier_code_key, lookup_id, adsp_family_id, adsp_indiv_partial_id, adsp_id, subject_type) VALUES ('{site_fam_id}','{site_indiv_id}',{cohort_identifier_code_key},'{lookup_id}','{adsp_family_id}','{adsp_indiv_partial_id}','{adsp_id}','{subject_type}')")
-            connection.commit()
+            database_connection(f"INSERT INTO generated_ids (site_fam_id, site_indiv_id, cohort_identifier_code_key, lookup_id, adsp_family_id, adsp_indiv_partial_id, adsp_id, subject_type) VALUES ('{site_fam_id}','{site_indiv_id}',{cohort_identifier_code_key},'{lookup_id}','{adsp_family_id}','{adsp_indiv_partial_id}','{adsp_id}','{subject_type}')")
             success_id_log.append(adsp_id)
 
 def generate_errorlog():

@@ -33,7 +33,6 @@ def main():
         write_error_log()
 
 def database_connection(query):
-    returned_array = []
     try:
         connection = psycopg2.connect(user = DBUSER, password = DBPASS, host = DBIP, port = DBPORT, database = DB)
         cursor = connection.cursor()
