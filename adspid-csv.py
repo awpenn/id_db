@@ -67,7 +67,6 @@ def database_connection(query):
             cursor.close()
             connection.close()
             print('database connection closed')
-
 def create_dict(): 
 
     current_records_dict = {}

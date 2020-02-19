@@ -1,10 +1,11 @@
 /*DROP AND RECREATE*/
 DROP VIEW IF EXISTS lookup_aliases;
-DROP VIEW IF EXISTS lookup;
 DROP VIEW IF EXISTS builder_lookup;
 DROP VIEW IF EXISTS lookup_cc;
 DROP VIEW IF EXISTS lookup_fam;
-
+DROP VIEW IF EXISTS subjects_samples;
+DROP VIEW IF EXISTS subjects_samples_ids;
+DROP VIEW IF EXISTS lookup;
 
 /*Views creation*/
 
@@ -47,9 +48,19 @@ DROP VIEW IF EXISTS lookup_fam;
 		JOIN lookup
 		ON alias_ids.generated_ids_lookup_id=lookup.lookup_id
 		WHERE alias_ids.generated_ids_lookup_id=lookup.lookup_id
-			AND alias_ids.cohort_identifier_code=lookup.cohort_identifier_code
+			AND alias_ids.cohort_identifier_code=lookup.cohort_identifier_code;
 	
+	/*create view to generate table of data from generated_ids table along with corresponding sample_ids*/
 
+	CREATE VIEW subjects_samples AS
+		SELECT adsp_id, sample_id, lookup_id, data_type, cohort_identifier_code, sequencing_study, subject_type, comments
+		FROM lookup
+		JOIN sample_ids
+		ON lookup.adsp_id = sample_ids.subject_adsp_id;
 		
-		
-		
+	/*create view to generate table of subject_ids, cohort codes, and corresponding sample_ids*/
+	CREATE VIEW subjects_samples_ids AS
+		SELECT adsp_id, sample_id, cohort_identifier_code
+		FROM lookup
+		JOIN sample_ids
+		ON lookup.adsp_id = sample_ids.subject_adsp_id;

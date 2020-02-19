@@ -48,7 +48,7 @@ def database_connection(query):
         connection.close()
 
     except (Exception, psycopg2.Error) as error:
-        # print('Error in database connection', error)
+        print('Error in database connection', error)
         error_list.append(error)
         
     finally:

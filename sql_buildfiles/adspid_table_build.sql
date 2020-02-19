@@ -52,6 +52,20 @@ CREATE TYPE "public"."subject_type" AS ENUM('case/control', 'family', 'other');
 		"cohort_identifier_code" VARCHAR(50)
 		    --lettered cohort code for subject
 	);
+	/*Create table to manage sample_ids, recording the externally-generated id, datatype of the sample, and name of study the sample was sequenced in. */
+	CREATE TABLE IF NOT EXISTS "sample_ids"(
+		"id" SERIAL NOT NULL,
+		--PK FOR TABLE
+		"sample_id" VARCHAR(50) UNIQUE,
+		--id for a particular sample, generated from concatenation of repository id, tissue source, aliqout-id and subject's adsp-generated id.
+		"data_type" VARCHAR(25),
+		--molecular datatype (e.g. WGS, WES, etc.) of sample.
+		"sequencing_study" VARCHAR(50),
+		--study for which the sample was sequenced.
+		"subject_adsp_id" VARCHAR (50) REFERENCES "generated_ids" ("adsp_id"),
+		--adsp id for the subject from whom the sample was derived.
+		"createdat" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT current_timestamp
+	);
 	
 	/*for testing python, not production*/
 	CREATE TABLE "new_ids" (
