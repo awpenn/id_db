@@ -24,43 +24,47 @@ DROP VIEW IF EXISTS lookup;
 		FROM generated_ids
 		JOIN cohort_identifier_codes
 		ON generated_ids.cohort_identifier_code_key = cohort_identifier_codes.id;
-
-		--select * from lookup where identifier_code = 'VAN';
 	
 	/*create view to filter by case/control subjects*/
-	CREATE VIEW lookup_cc AS
-	SELECT generated_ids.id AS id, adsp_id, site_fam_id, site_indiv_id, cohort_identifier_codes.cohort_identifier_code, lookup_id, adsp_family_id, adsp_indiv_partial_id, comments, subject_type
-		FROM generated_ids
-		JOIN cohort_identifier_codes
-		ON generated_ids.cohort_identifier_code_key = cohort_identifier_codes.id WHERE "subject_type" = 'case/control' AND "valid" = TRUE;
+
+		CREATE VIEW lookup_cc AS
+		SELECT generated_ids.id AS id, adsp_id, site_fam_id, site_indiv_id, cohort_identifier_codes.cohort_identifier_code, lookup_id, adsp_family_id, adsp_indiv_partial_id, comments, subject_type
+			FROM generated_ids
+			JOIN cohort_identifier_codes
+			ON generated_ids.cohort_identifier_code_key = cohort_identifier_codes.id WHERE "subject_type" = 'case/control' AND "valid" = TRUE;
 		
 	/*create view to filter by family subjects*/
-	CREATE VIEW lookup_fam AS
-	SELECT generated_ids.id AS id, adsp_id, site_fam_id, site_indiv_id, cohort_identifier_codes.cohort_identifier_code, lookup_id, adsp_family_id, adsp_indiv_partial_id, comments, subject_type
-		FROM generated_ids
-		JOIN cohort_identifier_codes
-		ON generated_ids.cohort_identifier_code_key = cohort_identifier_codes.id WHERE "subject_type" = 'family' AND "valid" = TRUE;
+
+		CREATE VIEW lookup_fam AS
+		SELECT generated_ids.id AS id, adsp_id, site_fam_id, site_indiv_id, cohort_identifier_codes.cohort_identifier_code, lookup_id, adsp_family_id, adsp_indiv_partial_id, comments, subject_type
+			FROM generated_ids
+			JOIN cohort_identifier_codes
+			ON generated_ids.cohort_identifier_code_key = cohort_identifier_codes.id WHERE "subject_type" = 'family' AND "valid" = TRUE;
 		
 	/*create view to generated table of records in generated_ids that have associated alias ids*/
-	CREATE VIEW lookup_aliases AS
-	SELECT alias_site_indiv_id as alias_id, lookup.site_indiv_id, lookup.lookup_id, lookup.adsp_id, lookup.cohort_identifier_code
-		FROM alias_ids
-		JOIN lookup
-		ON alias_ids.generated_ids_lookup_id=lookup.lookup_id
-		WHERE alias_ids.generated_ids_lookup_id=lookup.lookup_id
-			AND alias_ids.cohort_identifier_code=lookup.cohort_identifier_code;
+		
+		CREATE VIEW lookup_aliases AS
+		SELECT alias_site_indiv_id as alias_id, generated_ids.site_indiv_id, generated_ids.lookup_id, generated_ids.adsp_id, cohort_identifier_codes.cohort_identifier_code
+			FROM alias_ids
+			JOIN generated_ids
+				ON alias_ids.generated_ids_lookup_id=generated_ids.lookup_id
+			JOIN cohort_identifier_codes
+				ON generated_ids.cohort_identifier_code_key=cohort_identifier_codes.id
+			WHERE alias_ids.generated_ids_lookup_id=generated_ids.lookup_id
+				AND alias_ids.cohort_identifier_code_key=generated_ids.cohort_identifier_code_key;	
 	
 	/*create view to generate table of data from generated_ids table along with corresponding sample_ids*/
 
-	CREATE VIEW subjects_samples AS
-		SELECT adsp_id, sample_id, lookup_id, data_type, cohort_identifier_code, sequencing_study, subject_type, comments
-		FROM lookup
-		JOIN sample_ids
-		ON lookup.adsp_id = sample_ids.subject_adsp_id;
+		CREATE VIEW subjects_samples AS
+			SELECT adsp_id, sample_id, lookup_id, data_type, cohort_identifier_code, sequencing_study, subject_type, comments
+			FROM lookup
+			JOIN sample_ids
+			ON lookup.adsp_id = sample_ids.subject_adsp_id;
 		
 	/*create view to generate table of subject_ids, cohort codes, and corresponding sample_ids*/
-	CREATE VIEW subjects_samples_ids AS
-		SELECT adsp_id, sample_id, cohort_identifier_code
-		FROM lookup
-		JOIN sample_ids
-		ON lookup.adsp_id = sample_ids.subject_adsp_id;
+
+		CREATE VIEW subjects_samples_ids AS
+			SELECT adsp_id, sample_id, cohort_identifier_code
+			FROM lookup
+			JOIN sample_ids
+			ON lookup.adsp_id = sample_ids.subject_adsp_id;

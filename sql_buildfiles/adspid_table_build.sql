@@ -49,7 +49,7 @@ CREATE TYPE "public"."subject_type" AS ENUM('case/control', 'family', 'other');
 			--id that doesn't serve as primary site_indiv_id for a record in generated_ids table, but which is still associated with said record as alias id.
 		"generated_ids_lookup_id" VARCHAR(50),
 			--lookup_id for record in generated_ids to which the alias_site_indiv_id is linked.
-		"cohort_identifier_code" VARCHAR(50)
+		"cohort_identifier_code_key" INTEGER REFERENCES "cohort_identifier_codes" ("id")
 		    --lettered cohort code for subject
 	);
 	/*Create table to manage sample_ids, recording the externally-generated id, datatype of the sample, and name of study the sample was sequenced in. */
