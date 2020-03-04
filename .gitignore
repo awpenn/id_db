@@ -1,4 +1,5 @@
 source_files
 log_files
 .env
+.DS_Store
 devnotes.md
