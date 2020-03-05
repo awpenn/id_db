@@ -12,8 +12,9 @@ error_log = {}
 special_cohorts = ['LOAD', 'RAS', 'UPN'] #change to correct codes for production
 g_cohorts = ['KGAD', 'NIMH', 'ADNI', 'CCS']
 c_cohorts = ['ARIC', 'ASPS', 'CHS', 'ERF', 'FHS', 'RS']
-load_file = 'test.csv'
+load_file = 'new_ids.csv'
 family_data_creation = False
+create_family_ids = False
 
 load_dotenv()
 DBIP = os.getenv('DBIP')
@@ -33,10 +34,17 @@ def main():
     else:
         if select_casefam in ['y', 'Y', 'yes', 'Yes', 'YES']:
             family_data_creation = True
-            print('family ids will be checked and generated.')
+
+            select_make_famids = input('Do you want family ids checked and generated for these subjects?(y/n)')
+            if select_make_famids in ['y', 'Y', 'yes', 'Yes', 'YES']:
+                print('family ids will be checked and generated.')
+                create_family_ids = True
+            else:
+                print('family ids will not be checked and generated for these family study subjects.')
+    
             
-        if select_casefam in ['n', 'N', 'no', 'No', 'NO']:
-            print('family ids will not be checked and generated.')
+    if select_casefam in ['n', 'N', 'no', 'No', 'NO']:
+        print('family ids will not be checked and generated.')
     
     create_dict()
 
@@ -68,7 +76,7 @@ def database_connection(query):
             connection.close()
             print('database connection closed')
 def create_dict(): 
-
+    print('crteate dict reached')
     current_records_dict = {}
     new_records_dict = {}
     legacy_check_dict = {}
@@ -93,7 +101,7 @@ def create_dict():
         current_records_dict[f'{cohort_identifier_code}-{lookup_id}'] = row
 
     with open(f'./source_files/{load_file}', mode='r', encoding='utf-8-sig') as csv_file:
-        new_records = csv.reader(csv_file)
+        new_records = csv.reader(csv_file) 
 
         for row in new_records:
             site_fam_id = row[0]
@@ -203,7 +211,7 @@ def write_to_database(records_to_database_dict):
             lookup_id = value[2]
             subject_type = 'family'
 
-        cohort_identifier_code = value[3]
+        cohort_identifier_code = value[4]
 
         if cohort_identifier_code in g_cohorts or cohort_identifier_code in c_cohorts:
             if cohort_identifier_code in g_cohorts:
@@ -223,37 +231,39 @@ def write_to_database(records_to_database_dict):
 
         ## get adsp_family_id based on site_fam_id AND the cohort retrieved above, or flag if none exists, IF family id switch is True
         if family_data_creation:
-            retrieved_fam_id = database_connection(f"SELECT DISTINCT adsp_family_id FROM generated_ids WHERE site_fam_id = '{site_fam_id}' AND cohort_identifier_code_key = '{cohort_identifier_code_key}'")
-            if len(retrieved_fam_id) > 0:
-                for row in retrieved_fam_id:
-                    adsp_family_id = row[0]   
-            else:
-                print(f'there seems to be no adsp_family_id found associated with site family id {site_fam_id}. Please check the database')
-                # error_log[key] = [value, 'No adsp_family_id was found for this subject's site_family_id']
-                make_fam_id = input('Do you want to generate a new ADSP_family_id for this site_family_id?(y/n)')
-                if(make_fam_id == 'y'):
-                    print(f'making fam id, finding last made family id for {cohort_identifier_code}')
-                    retrieved_adsp_family = database_connection(f"SELECT adsp_family_id FROM lookup WHERE cohort_identifier_code = '{cohort_identifier_code}' AND adsp_family_id IS NOT NULL ORDER BY adsp_family_id DESC LIMIT 1")
-
-                    if len(retrieved_adsp_family) < 1:
-                        print(retrieved_adsp_family)
-                        error_log[key] = [value, 'Error: Attempted to create new adsp_family_id, but no adsp_family_ids found associated with this cohort.']
-                        continue
-                    else:
-                        print(f'An adsp_family_id was returned as last made for {cohort_identifier_code}')
-                        most_recent_family_id = retrieved_adsp_family[0][0]
-                        print(retrieved_adsp_family)
-                        prefix = most_recent_family_id[:2]
-                        id_numeric_end = len(most_recent_family_id)-1
-                        incremental = int(most_recent_family_id[2:id_numeric_end])+1
-
-                        print(f'{prefix}{str(incremental).zfill(4)}F')
-                        adsp_family_id = f'{prefix}{str(incremental).zfill(4)}F'
-            
+            if create_family_ids:
+                retrieved_fam_id = database_connection(f"SELECT DISTINCT adsp_family_id FROM generated_ids WHERE site_fam_id = '{site_fam_id}' AND cohort_identifier_code_key = '{cohort_identifier_code_key}'")
+                if len(retrieved_fam_id) > 0:
+                    for row in retrieved_fam_id:
+                        adsp_family_id = row[0]   
                 else:
-                    print('No adsp family id will be created. "0" will be assigned')
-                    adsp_family_id = 0
+                    print(f'there seems to be no adsp_family_id found associated with site family id {site_fam_id}. Please check the database')
+                    # error_log[key] = [value, 'No adsp_family_id was found for this subject's site_family_id']
+                    make_fam_id = input('Do you want to generate a new ADSP_family_id for this site_family_id?(y/n)')
+                    if(make_fam_id == 'y'):
+                        print(f'making fam id, finding last made family id for {cohort_identifier_code}')
+                        retrieved_adsp_family = database_connection(f"SELECT adsp_family_id FROM lookup WHERE cohort_identifier_code = '{cohort_identifier_code}' AND adsp_family_id IS NOT NULL ORDER BY adsp_family_id DESC LIMIT 1")
 
+                        if len(retrieved_adsp_family) < 1:
+                            print(retrieved_adsp_family)
+                            error_log[key] = [value, 'Error: Attempted to create new adsp_family_id, but no adsp_family_ids found associated with this cohort.']
+                            continue
+                        else:
+                            print(f'An adsp_family_id was returned as last made for {cohort_identifier_code}')
+                            most_recent_family_id = retrieved_adsp_family[0][0]
+                            print(retrieved_adsp_family)
+                            prefix = most_recent_family_id[:2]
+                            id_numeric_end = len(most_recent_family_id)-1
+                            incremental = int(most_recent_family_id[2:id_numeric_end])+1
+
+                            print(f'{prefix}{str(incremental).zfill(4)}F')
+                            adsp_family_id = f'{prefix}{str(incremental).zfill(4)}F'
+                
+                    else:
+                        print('No adsp family id will be created. "#N/A" will be assigned')
+                        adsp_family_id = "#N/A"
+            else:
+                adsp_family_id = "#N/A"
         ## `builder_lookup` ignores validity flag when looking for the latest adsp_partial_id created, so doesnt duplicate one that was created and made not valid
         retrieved_partial = database_connection(f"SELECT adsp_indiv_partial_id FROM builder_lookup WHERE cohort_identifier_code = '{cohort_identifier_code}' ORDER BY adsp_indiv_partial_id DESC LIMIT 1")
 
