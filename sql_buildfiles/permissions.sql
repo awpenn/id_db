@@ -1,4 +1,4 @@
-﻿--PREVENT TABLE DROPS FOR NONSUPERUSER
+--PREVENT TABLE DROPS FOR NONSUPERUSER
 REVOKE CREATE ON SCHEMA public FROM PUBLIC;
 
 --BASIC PERMISSIONS FOR MANAGER ROLE
@@ -15,7 +15,7 @@ GRANT SELECT ON public.lookup_aliases TO manager;
 GRANT SELECT ON public.lookup_cc TO manager;
 GRANT SELECT ON public.lookup_fam TO manager;
 GRANT SELECT ON public.subjects_samples TO manager;
-GRANT SELECT ON public.subjects_samples_id TO manager;
+GRANT SELECT ON public.subjects_samples_ids TO manager;
 
 
 --MANAGER USAGE FOR SEQUENCES
@@ -29,17 +29,17 @@ GRANT USAGE ON SEQUENCE public.sample_ids_id_seq TO manager;
 
 
 --PERMISSIONS FOR VIEWER ROLE
-SELECT public.alias_ids TO manager;
+GRANT SELECT ON public.alias_ids TO manager;
 
-SELECT public.cohort_identifier_codes TO manager;
+GRANT SELECT ON public.cohort_identifier_codes TO manager;
 
-SELECT public.generated_ids TO manager;
+GRANT SELECT ON public.generated_ids TO manager;
 
-SELECT public.sample_ids TO manager;
+GRANT SELECT ON public.sample_ids TO manager;
 
 GRANT SELECT ON public.lookup TO manager;
 GRANT SELECT ON public.lookup_aliases TO manager;
 GRANT SELECT ON public.lookup_cc TO manager;
 GRANT SELECT ON public.lookup_fam TO manager;
 GRANT SELECT ON public.subjects_samples TO manager;
-GRANT SELECT ON public.subjects_samples_id TO manager;
+GRANT SELECT ON public.subjects_samples_ids TO manager;

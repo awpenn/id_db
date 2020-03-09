@@ -12,7 +12,7 @@ error_log = {}
 special_cohorts = ['LOAD', 'RAS', 'UPN'] #change to correct codes for production
 g_cohorts = ['KGAD', 'NIMH', 'ADNI', 'CCS']
 c_cohorts = ['ARIC', 'ASPS', 'CHS', 'ERF', 'FHS', 'RS']
-load_file = 'new_ids.csv'
+load_file = 'cuhs_newids_30920.csv'
 family_data_creation = False
 create_family_ids = False
 
@@ -26,6 +26,7 @@ DBUSER = os.getenv('DBUSER')
 def main():
     
     global family_data_creation
+    global create_family_ids
     
     select_casefam = input('Are you loading family data? (y/n)')
     if select_casefam not in ['y', 'n', 'Y', 'N', 'yes', 'no', 'YES', 'NO', 'Yes', 'No']:
