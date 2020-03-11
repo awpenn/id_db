@@ -2,8 +2,11 @@
 #This script will install all the dependencies required to run the adsp id generation and database loading script.
 parentdir="$(dirname "$(pwd)")"
 
-sudo apt-get install python-pip
-sudo apt-get install python3-pip
+sudo apt-get install python-pip -y
+sudo apt-get install python3-pip -y
+
+sudo apt-get install libpq-dev -y
+sudo apt-get install python3.7-dev -y
 
 pip install -U pip
 pip install setuptools
