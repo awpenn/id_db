@@ -1,5 +1,3 @@
-source_files
-log_files
 .env
 .venv
 .vscode
