@@ -9,10 +9,10 @@ import time
 new_records = []
 success_id_log = []
 error_log = {}
-special_cohorts = ['LOAD', 'RAS', 'UPN'] #change to correct codes for production
+special_cohorts = ['LOAD', 'RAS', 'UPN']
 g_cohorts = ['KGAD', 'NIMH', 'ADNI', 'CCS']
 c_cohorts = ['ARIC', 'ASPS', 'CHS', 'ERF', 'FHS', 'RS']
-load_file = 'cuhs_newids_30920.csv'
+load_file = '[LOAD_FILE.csv]'
 family_data_creation = False
 create_family_ids = False
 
@@ -24,6 +24,7 @@ DB = os.getenv('DB')
 DBUSER = os.getenv('DBUSER')
 
 def main():
+    """main conductor function for the script.  Takes some input about the type of data being uploaded and runs the process from there."""
     
     global family_data_creation
     global create_family_ids
@@ -50,6 +51,8 @@ def main():
     create_dict()
 
 def database_connection(query):
+    """takes a string SQL statement as input, and depending on the type of statement either performs an insert or returns data from the database"""
+
     try:
         connection = psycopg2.connect(user = DBUSER, password = DBPASS, host = DBIP, port = DBPORT, database = DB)
         cursor = connection.cursor()
@@ -76,8 +79,10 @@ def database_connection(query):
             cursor.close()
             connection.close()
             print('database connection closed')
-def create_dict(): 
-    print('crteate dict reached')
+
+def create_dict():
+    """creates dicts of to-be-added subject data and already-in-database data.  Dict elements have keys created by concatenating the cohort code and lookup id"""
+
     current_records_dict = {}
     new_records_dict = {}
     legacy_check_dict = {}
@@ -91,7 +96,7 @@ def create_dict():
     current_records = database_connection('SELECT * FROM lookup')
 
     for row in current_records:
-        #mostly just for reference to variables in the cr dict
+
         table_id = row[0]
         adspid = row[1]
         site_fam = row[2]
@@ -107,7 +112,7 @@ def create_dict():
         for row in new_records:
             site_fam_id = row[0]
             site_indiv_id = row[1]
-            ## if looking at family data, make combined id with site_fam_id + site_indiv_id, else is same as indiv_id
+
             if family_data_creation:
                 lookup_id = f'{site_fam_id}_{site_indiv_id}'
             else:
@@ -115,7 +120,7 @@ def create_dict():
             cohort_identifier_code = row[2]
             
             row.insert(2, lookup_id)
-            ## add conditional to check case/fam switch selected at beginning
+
             if cohort_identifier_code in special_cohorts and family_data_creation:
                 if '26_' in site_fam_id or '26-' in site_fam_id:
                     legacy_check_dict[f'{cohort_identifier_code}-{lookup_id}'] = row
@@ -129,14 +134,10 @@ def create_dict():
         legacy_check(legacy_check_dict, combine_new_and_legacy_dicts)
     
     else:
-        print('none to special check')
         compare(current_records_dict, new_records_dict)
 
 def legacy_check(legacy_check_dict, callback):
-    print('legacy check hit')
-    print(legacy_check_dict)
-    # -legacy_check dict passed to function that looks for cohort identifiers associated with family id (insert check for only one associated)
-    # -[will] build dict of subject info objects to be compared as usual, but with appropriate cohort identifier attached
+    """takes a dict of subject data to check in "legacy" condition, processes the legacy check subject data if necessary, and passes the reprocessed dict to the 'combine_new_and_legacy_dicts' function"""
 
     processed_legacy_dict = {}
     for key, value in legacy_check_dict.items():
@@ -179,7 +180,8 @@ def legacy_check(legacy_check_dict, callback):
     callback(processed_legacy_dict)
 
 def compare(current_records_dict, new_records_dict):
-    print('compare function hit')
+    """takes as input the dict made of subject data from the database and the dict created from data in the loadfile.  Compares new data with existing data to determine if new db writes need to occur, and if new subjects are found, they are passed to the 'write_to_database' function"""
+
     records_to_database_dict = {}
     for key, value in new_records_dict.items():
         try:
@@ -200,6 +202,8 @@ def compare(current_records_dict, new_records_dict):
         print('No new records to create.....')
 
 def write_to_database(records_to_database_dict):
+    """takes as input a dict of new subject data, generates new ADSP ids, constructs INSERT statements and sends to the 'database_connection' function"""
+    
     for key, value in records_to_database_dict.items():
         #need select statement to get id of cohort identifier code, adsp_family_id for site_fam_id, next adsp_indiv_partial_id based on the cohort,
         #next adspid based on the cohort
@@ -288,6 +292,8 @@ def write_to_database(records_to_database_dict):
             success_id_log.append(adsp_id)
 
 def generate_errorlog():
+    """creates error log and writes to 'log_files' directory"""
+
     timestamp = calendar.timegm(time.gmtime())
     f = open(f'./log_files/{timestamp}-log.txt', 'w+')
     f.write(f'{str(len(error_log.items()))} flag(s) raised in runtime. See details below: \n\n')
@@ -299,6 +305,8 @@ def generate_errorlog():
         f.write(f'cohort_identifier_code: {value[0][3]}\n\n')
 
 def generate_success_list():
+    """creates a list of successfully created and inserted ADSP IDs"""
+
     timestamp = calendar.timegm(time.gmtime())
     f = open(f'./log_files/success_lists/{timestamp}-generated_ids.txt', 'w+')
     for id in success_id_log:
