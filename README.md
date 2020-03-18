@@ -30,6 +30,7 @@ so for example, one record in this file could look like:
 Make sure that there are no blank lines at the end of the csv file (this can occur sometimes when saving a .csv file from an existing .xsls file).
 
 3. In the command line, run `python adspid-csv.py` -- *ensure that your virtual environment is activated*
+- * in `id_db` directory, run `source .venv/bin/activate`
 
 4. You will be prompted to input some information regarding the data to be loaded into the database.  Select the type of data being entered (ie. case/control or family data).  This will determine how the "lookup id" is generated.  If you select "family", you will be further prompted to select whether or not ADSP family ids should be assigned.  
 

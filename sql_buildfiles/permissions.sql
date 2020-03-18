@@ -10,6 +10,16 @@ GRANT INSERT, SELECT, UPDATE ON TABLE public.generated_ids TO manager;
 
 GRANT INSERT, SELECT, UPDATE ON TABLE public.sample_ids TO manager;
 
+-- TESTER PERMISSIONS FOR SANDBOX TESTING (ADSPID DB)
+
+GRANT INSERT, SELECT, UPDATE ON TABLE public.alias_ids TO tester;
+
+GRANT INSERT, SELECT, UPDATE ON TABLE public.cohort_identifier_codes TO tester;
+
+GRANT INSERT, SELECT, UPDATE ON TABLE public.generated_ids TO tester;
+
+GRANT INSERT, SELECT, UPDATE ON TABLE public.sample_ids TO tester;
+
 GRANT SELECT ON public.lookup TO manager;
 GRANT SELECT ON public.lookup_aliases TO manager;
 GRANT SELECT ON public.lookup_cc TO manager;
