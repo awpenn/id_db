@@ -3,8 +3,7 @@
 # Setup
 
 ## Python Setup
-This script was developed using Python 3.7.6.  Run `python --version` to check your the version currently installed on your system.*
-*[n.b fstrings require python >= 3.6. testing to see if everything works fine with python 3.6 for rest of script* 
+This script was developed using Python 3.7.6, however the script should work with any version of python greater than 3.5.  Run `python --version` to check your the version currently installed on your system.*
 
 ## Get and install >= Python 3.6
 `sudo add-apt-repository ppa:deadsnakes/ppa` *these repositories expire from time to time.  As of 3/19/20 deadsnakes worked to install*  
@@ -26,10 +25,10 @@ bash setup.sh
 You will have to create a .env file in the root directory of the repository (`id_db`), containing the appropriate database connection variables. Use the template below:
 ```
 DBIP = "[DATABASE.IP.ADDRESS]"
-DBPASS = [USER_PASS] *for testing, will be "adsp.tester"*
+DBPASS = "[USER_PASS]" *for testing, will be "adsp.tester"*
 DBPORT = "5432"
 DB = "[DATABASE_NAME]"
-DBUSER = [USERNAME] *for testing, will be "tester"*
+DBUSER = "[USERNAME]" *for testing, will be "tester"*
 ```
 
 # Using the script
