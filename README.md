@@ -1,21 +1,38 @@
 # id_db
 
-## Setup
+# Setup
 
+## Python Setup
+This script was developed using Python 3.7.6.  Run `python --version` to check your the version currently installed on your system.*
+*[n.b fstrings require python >= 3.6. testing to see if everything works fine with python 3.6 for rest of script* 
+
+## Get and install >= Python 3.6
+`sudo add-apt-repository ppa:deadsnakes/ppa` *these repositories expire from time to time.  As of 3/19/20 deadsnakes worked to install*  
+`sudo apt-get update`
+`sudo apt-get install python3.x` [.6 or .7]
+
+## Set updated version as default version called with Python3 command
+`sudo update-alternatives /usr/bin/python3 --install /usr/bin/python3.x 1`   
+`sudo update-alternatives --config python3`  
+`python3 --version` //now returns newly installed version of python  
+
+
+## Repository Setup
 git clone https://github.com/awpenn/id_db.git  
 cd id_db  
 bash setup.sh  
 
 ## Additional Configuration
-You will have to create a .env file containing the appropriate database connection variables. Use the template below:
-```DBIP = "[DATABASE.IP.ADDRESS]"
-DBPASS = "root"
+You will have to create a .env file in the root directory of the repository (`id_db`), containing the appropriate database connection variables. Use the template below:
+```
+DBIP = "[DATABASE.IP.ADDRESS]"
+DBPASS = [USER_PASS] *for testing, will be "adsp.tester"*
 DBPORT = "5432"
 DB = "[DATABASE_NAME]"
-DBUSER = "postgres"
+DBUSER = [USERNAME] *for testing, will be "tester"*
 ```
 
-## Using the script
+# Using the script
 1. Enable the virtualenv with `source .venv/bin/activate`
 2. place a csv (not .xslx) file in the `source_files` directory.  This file should contain rows of comma-separated values for the following fields (in the following order):
 - site-based family id
@@ -29,8 +46,7 @@ so for example, one record in this file could look like:
 ```
 Make sure that there are no blank lines at the end of the csv file (this can occur sometimes when saving a .csv file from an existing .xsls file).
 
-3. In the command line, run `python adspid-csv.py` -- *ensure that your virtual environment is activated*
-- * in `id_db` directory, run `source .venv/bin/activate`
+3. In the command line, run `python adspid-csv.py` -- *ensure again that your virtual environment is activated*
 
 4. You will be prompted to input some information regarding the data to be loaded into the database.  Select the type of data being entered (ie. case/control or family data).  This will determine how the "lookup id" is generated.  If you select "family", you will be further prompted to select whether or not ADSP family ids should be assigned.  
 
