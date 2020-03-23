@@ -265,10 +265,10 @@ def write_to_database(records_to_database_dict):
                             adsp_family_id = f'{prefix}{str(incremental).zfill(4)}F'
                 
                     else:
-                        print('No adsp family id will be created. "#N/A" will be assigned')
-                        adsp_family_id = "#N/A"
+                        print('No adsp family id will be created. "NA" will be assigned')
+                        adsp_family_id = "NA"
             else:
-                adsp_family_id = "#N/A"
+                adsp_family_id = "NA"
         ## `builder_lookup` ignores validity flag when looking for the latest adsp_partial_id created, so doesnt duplicate one that was created and made not valid
         retrieved_partial = database_connection(f"SELECT adsp_indiv_partial_id FROM builder_lookup WHERE cohort_identifier_code = '{cohort_identifier_code}' ORDER BY adsp_indiv_partial_id DESC LIMIT 1")
 
