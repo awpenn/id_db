@@ -11,7 +11,7 @@ This script was developed using Python 3.7.6, however the script should work wit
 `sudo apt-get install python3.x` [.6 or .7]
 
 ## Set updated version as default version called with Python3 command
-`sudo update-alternatives /usr/bin/python3 --install /usr/bin/python3.x 1`   
+`sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.x 1`    
 `sudo update-alternatives --config python3`  
 `python3 --version` //now returns newly installed version of python  
 
