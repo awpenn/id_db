@@ -32,6 +32,27 @@ DBUSER = "[USERNAME]" *for testing, will be "tester"*
 LOADFILE = "[LOADFILE].csv"
 ```
 
+## Using The Docker Container Version
+- If you have docker set up on your computer or virtual machine, you can deploy a containerized version of the application with all environment variables and dependencies installed. 
+1. Pull the latest version of the image (use `docker search awpenn` to find this latest version.)
+```
+docker pull awpenn/id_db:1.0.0
+```
+2. Start a container from the image
+```
+docker run -ti awpenn/id_db:1.0.0
+```
+3. Navigate to the repository's home directory (the above command will put you in a bash shell within the running container)
+```
+cd id_db
+```
+4. Edit the `.env`
+```
+vim .env -->> *enter variables as desctibed above*
+```
+
+
+
 # Using the script
 1. Enable the virtualenv with `source .venv/bin/activate`
 2. place a csv (not .xslx) file in the `source_files` directory.  This file should contain rows of comma-separated values for the following fields (in the following order):
