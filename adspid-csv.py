@@ -12,7 +12,6 @@ error_log = {}
 special_cohorts = ['LOAD', 'RAS', 'UPN']
 g_cohorts = ['KGAD', 'NIMH', 'ADNI', 'CCS']
 c_cohorts = ['ARIC', 'ASPS', 'CHS', 'ERF', 'FHS', 'RS']
-load_file = '[LOAD_FILE.csv]'
 family_data_creation = False
 create_family_ids = False
 
@@ -22,6 +21,7 @@ DBPASS = os.getenv('DBPASS')
 DBPORT = os.getenv('DBPORT')
 DB = os.getenv('DB')
 DBUSER = os.getenv('DBUSER')
+LOADFILE = os.getenv('LOADFILE')
 
 def main():
     """main conductor function for the script.  Takes some input about the type of data being uploaded and runs the process from there."""
@@ -106,7 +106,7 @@ def create_dict():
         
         current_records_dict[f'{cohort_identifier_code}-{lookup_id}'] = row
 
-    with open(f'./source_files/{load_file}', mode='r', encoding='utf-8-sig') as csv_file:
+    with open(f'./source_files/{LOADFILE}', mode='r', encoding='utf-8-sig') as csv_file:
         new_records = csv.reader(csv_file) 
 
         for row in new_records:
