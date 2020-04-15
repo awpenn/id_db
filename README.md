@@ -29,6 +29,7 @@ DBPASS = "[USER_PASS]" *for testing, will be "adsp.tester"*
 DBPORT = "5432"
 DB = "[DATABASE_NAME]"
 DBUSER = "[USERNAME]" *for testing, will be "tester"*
+LOADFILE = "[LOADFILE].csv"
 ```
 
 # Using the script
