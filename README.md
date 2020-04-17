@@ -22,7 +22,7 @@ cd id_db
 bash setup.sh  
 
 ## Additional Configuration
-You will have to create a .env file in the root directory of the repository (`id_db`), containing the appropriate database connection variables. Use the template below:
+Copy the `.env-template` as `.env` and enter the appropriate variable values. 
 ```
 DBIP = "[DATABASE.IP.ADDRESS]"
 DBPASS = "[USER_PASS]" *for testing, will be "adsp.tester"*
