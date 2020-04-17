@@ -36,11 +36,11 @@ LOADFILE = "[LOADFILE].csv"
 - If you have docker set up on your computer or virtual machine, you can deploy a containerized version of the application with all environment variables and dependencies installed. 
 1. Pull the latest version of the image (use `docker search awpenn` to find this latest version.)
 ```
-docker pull awpenn/id_db:1.0.0
+docker pull awpenn/id_db
 ```
 2. Start a container from the image
 ```
-docker run -ti awpenn/id_db:1.0.0
+docker run -ti --name "id_db" awpenn/id_db
 ```
 3. Navigate to the repository's home directory (the above command will put you in a bash shell within the running container)
 ```
@@ -49,6 +49,16 @@ cd id_db
 4. Edit the `.env`
 ```
 vim .env -->> *enter variables as desctibed above*
+exit
+```
+5. Copy loadfile into container's `source_files` directory
+```
+docker cp /path/to/file/on/host/computer/source_file.csv [container_name]:/id_db/source_files
+```
+6. Start the container to run script
+```
+docker start -i [container_name]
+(see `using script` below)
 ```
 
 
