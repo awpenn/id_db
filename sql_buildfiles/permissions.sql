@@ -40,17 +40,17 @@ GRANT USAGE ON SEQUENCE public.sample_ids_id_seq TO manager;
 
 
 --PERMISSIONS FOR VIEWER ROLE
-GRANT SELECT ON public.alias_ids TO manager;
+GRANT SELECT ON public.alias_ids TO viewer;
 
-GRANT SELECT ON public.cohort_identifier_codes TO manager;
+GRANT SELECT ON public.cohort_identifier_codes TO viewer;
 
-GRANT SELECT ON public.generated_ids TO manager;
+GRANT SELECT ON public.generated_ids TO viewer;
 
-GRANT SELECT ON public.sample_ids TO manager;
+GRANT SELECT ON public.sample_ids TO viewer;
 
-GRANT SELECT ON public.lookup TO manager;
-GRANT SELECT ON public.lookup_aliases TO manager;
-GRANT SELECT ON public.lookup_cc TO manager;
-GRANT SELECT ON public.lookup_fam TO manager;
-GRANT SELECT ON public.subjects_samples TO manager;
-GRANT SELECT ON public.subjects_samples_ids TO manager;
+GRANT SELECT ON public.lookup TO viewer;
+GRANT SELECT ON public.lookup_aliases TO viewer;
+GRANT SELECT ON public.lookup_cc TO viewer;
+GRANT SELECT ON public.lookup_fam TO viewer;
+GRANT SELECT ON public.subjects_samples TO viewer;
+GRANT SELECT ON public.subjects_samples_ids TO viewer;
