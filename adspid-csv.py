@@ -250,9 +250,14 @@ def write_to_database(records_to_database_dict):
                         retrieved_adsp_family = database_connection(f"SELECT adsp_family_id FROM lookup WHERE cohort_identifier_code = '{cohort_identifier_code}' AND adsp_family_id IS NOT NULL ORDER BY adsp_family_id DESC LIMIT 1")
 
                         if len(retrieved_adsp_family) < 1:
-                            print(retrieved_adsp_family)
-                            error_log[key] = [value, 'Error: Attempted to create new adsp_family_id, but no adsp_family_ids found associated with this cohort.']
-                            continue
+                            make_first_fam_id = input('There are no existing family ids for this cohort.  Do you want to create the first one?(y/n)')
+                            if make_first_fam_id == 'y':
+                                # need to check valid length here and re-call, then assign as adsp_family_id
+                                adsp_family_id = create_first_family_id()
+
+                            else:
+                                error_log[key] = [value, 'There were no adsp_family_ids for this cohort and user did not wish to create new one.']
+                                continue
                         else:
                             print(f'An adsp_family_id was returned as last made for {cohort_identifier_code}')
                             most_recent_family_id = retrieved_adsp_family[0][0]
@@ -291,6 +296,29 @@ def write_to_database(records_to_database_dict):
             database_connection(f"INSERT INTO generated_ids (site_fam_id, site_indiv_id, cohort_identifier_code_key, lookup_id, adsp_family_id, adsp_indiv_partial_id, adsp_id, subject_type) VALUES ('{site_fam_id}','{site_indiv_id}',{cohort_identifier_code_key},'{lookup_id}','{adsp_family_id}','{adsp_indiv_partial_id}','{adsp_id}','{subject_type}')")
             success_id_log.append(adsp_id)
 
+def create_first_family_id():
+    """takes no input, returns new family id construction based on user input"""
+    
+    def prompt_for_prefix():
+        while True:
+            try:
+                prefix_input = input("Enter two-letter code that will serve as first two characters of the new family_id")
+
+            except ValueError:
+                continue
+
+            if len(prefix_input) is not 2:
+                print('Please enter 2 letters for prefix.')
+                continue
+            else:        
+                break
+
+        return prefix_input.upper()
+    
+    first_adsp_family_id = f'{prompt_for_prefix()}{str("1").zfill(4)}F'
+    
+    return first_adsp_family_id
+
 def generate_errorlog():
     """creates error log and writes to 'log_files' directory"""
 
@@ -317,7 +345,7 @@ def generate_success_list():
 
     f.close()
 
-if __name__ == '__main__':
-    main()
-    generate_errorlog()
-    generate_success_list()
+# if __name__ == '__main__':
+#     main()
+#     generate_errorlog()
+#     generate_success_list()
