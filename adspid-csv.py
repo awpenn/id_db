@@ -216,7 +216,7 @@ def write_to_database(records_to_database_dict):
             lookup_id = value[2]
             subject_type = 'family'
 
-        cohort_identifier_code = value[4]
+        cohort_identifier_code = value[3]
 
         if cohort_identifier_code in g_cohorts or cohort_identifier_code in c_cohorts:
             if cohort_identifier_code in g_cohorts:
@@ -226,8 +226,8 @@ def write_to_database(records_to_database_dict):
         else:
             id_prefix = 'A'
 
-        ## initialized as 0, will change if fam is switched on
-        adsp_family_id = 0
+        ## initialized as NA, will change if fam is switched on
+        adsp_family_id = 'NA'
 
         ## get cohort id
         retrieved_cohort_id = database_connection(f"SELECT DISTINCT id FROM cohort_identifier_codes WHERE cohort_identifier_code = '{cohort_identifier_code}'")
@@ -278,9 +278,22 @@ def write_to_database(records_to_database_dict):
         retrieved_partial = database_connection(f"SELECT adsp_indiv_partial_id FROM builder_lookup WHERE cohort_identifier_code = '{cohort_identifier_code}' ORDER BY adsp_indiv_partial_id DESC LIMIT 1")
 
         if len(retrieved_partial) < 1:
-            print(f"No adsp_indiv_partial found associated with {cohort_identifier_code}.  Check that you're using the correct cohort identifier code (letter-based). No record will be created.")
-            
-            error_log[key] = [value, f'Error: No indiv_partial was returned when queried for cohort code: {cohort_identifier_code}. Check that letter code and not table key is in loadfile.']
+            print(f"No adsp_indiv_partial found associated with {cohort_identifier_code}.")
+            make_first_indiv_partial = input(f"Do you want to create the first individual id for {cohort_identifier_code} (y/n)")
+            if make_first_indiv_partial == 'y':
+                if adsp_family_id is not 'NA':
+                    adsp_indiv_partial_id = f'{adsp_family_id[:2]}{str("1").zfill(6)}'
+                else:
+                    adsp_indiv_partial_id = f'{get_indiv_id_prefix(cohort_identifier_code)}{str("1").zfill(6)}'
+                    
+                adsp_id = f'{id_prefix}-{cohort_identifier_code}-{adsp_indiv_partial_id}'
+
+                database_connection(f"INSERT INTO generated_ids (site_fam_id, site_indiv_id, cohort_identifier_code_key, lookup_id, adsp_family_id, adsp_indiv_partial_id, adsp_id, subject_type) VALUES ('{site_fam_id}','{site_indiv_id}',{cohort_identifier_code_key},'{lookup_id}','{adsp_family_id}','{adsp_indiv_partial_id}','{adsp_id}','{subject_type}')")
+                success_id_log.append(adsp_id)
+
+            else:   
+                error_log[key] = [value, f'Error: No indiv_partial was returned when queried for cohort code: {cohort_identifier_code}, and the user chose not to create the first id for the cohort. No record was created.']
+                continue
         else:
 
             for row in retrieved_partial:
@@ -308,7 +321,7 @@ def create_first_family_id():
                 continue
 
             if len(prefix_input) is not 2:
-                print('Please enter 2 letters for prefix.')
+                print('Please enter two letters for prefix.')
                 continue
             else:        
                 break
@@ -318,6 +331,19 @@ def create_first_family_id():
     first_adsp_family_id = f'{prompt_for_prefix()}{str("1").zfill(4)}F'
     
     return first_adsp_family_id
+
+def get_indiv_id_prefix(cohort_identifier_code):
+    while True:
+        try: prefix_input = input(f"Enter two-letter code that will serve as first two charactrers of new adsp_ids for {cohort_identifier_code}")
+        except ValueError:
+            continue
+        if len(prefix_input) is not 2:
+            print('please enter two letters for prefix.')
+            continue
+        else:
+            break
+
+    return prefix_input
 
 def generate_errorlog():
     """creates error log and writes to 'log_files' directory"""
@@ -345,7 +371,7 @@ def generate_success_list():
 
     f.close()
 
-# if __name__ == '__main__':
-#     main()
-#     generate_errorlog()
-#     generate_success_list()
+if __name__ == '__main__':
+    main()
+    generate_errorlog()
+    generate_success_list()
