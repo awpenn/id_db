@@ -29,7 +29,7 @@ def main():
     global family_data_creation
     global create_family_ids
     
-    select_casefam = input('Are you loading family data? (y/n)')
+    select_casefam = input('Are you loading family data? (y/n) ')
     if select_casefam not in ['y', 'n', 'Y', 'N', 'yes', 'no', 'YES', 'NO', 'Yes', 'No']:
         main()
 
@@ -37,7 +37,7 @@ def main():
         if select_casefam in ['y', 'Y', 'yes', 'Yes', 'YES']:
             family_data_creation = True
 
-            select_make_famids = input('Do you want family ids checked and generated for these subjects?(y/n)')
+            select_make_famids = input('Do you want family ids checked and generated for these subjects?(y/n) ')
             if select_make_famids in ['y', 'Y', 'yes', 'Yes', 'YES']:
                 print('family ids will be checked and generated.')
                 create_family_ids = True
@@ -244,13 +244,13 @@ def write_to_database(records_to_database_dict):
                 else:
                     print(f'there seems to be no adsp_family_id found associated with site family id {site_fam_id}. Please check the database')
                     # error_log[key] = [value, 'No adsp_family_id was found for this subject's site_family_id']
-                    make_fam_id = input('Do you want to generate a new ADSP_family_id for this site_family_id?(y/n)')
+                    make_fam_id = input('Do you want to generate a new ADSP_family_id for this site_family_id?(y/n) ')
                     if(make_fam_id == 'y'):
                         print(f'making fam id, finding last made family id for {cohort_identifier_code}')
                         retrieved_adsp_family = database_connection(f"SELECT adsp_family_id FROM lookup WHERE cohort_identifier_code = '{cohort_identifier_code}' AND adsp_family_id IS NOT NULL ORDER BY adsp_family_id DESC LIMIT 1")
 
                         if len(retrieved_adsp_family) < 1:
-                            make_first_fam_id = input('There are no existing family ids for this cohort.  Do you want to create the first one?(y/n)')
+                            make_first_fam_id = input('There are no existing family ids for this cohort.  Do you want to create the first one?(y/n) ')
                             if make_first_fam_id == 'y':
                                 # need to check valid length here and re-call, then assign as adsp_family_id
                                 adsp_family_id = create_first_family_id()
@@ -279,7 +279,7 @@ def write_to_database(records_to_database_dict):
 
         if len(retrieved_partial) < 1:
             print(f"No adsp_indiv_partial found associated with {cohort_identifier_code}.")
-            make_first_indiv_partial = input(f"Do you want to create the first individual id for {cohort_identifier_code} (y/n)")
+            make_first_indiv_partial = input(f"Do you want to create the first individual id for {cohort_identifier_code} (y/n) ")
             if make_first_indiv_partial == 'y':
                 if adsp_family_id is not 'NA':
                     adsp_indiv_partial_id = f'{adsp_family_id[:2]}{str("1").zfill(6)}'
@@ -315,7 +315,7 @@ def create_first_family_id():
     def prompt_for_prefix():
         while True:
             try:
-                prefix_input = input("Enter two-letter code that will serve as first two characters of the new family_id")
+                prefix_input = input("Enter two-letter code that will serve as first two characters of the new family_id...")
 
             except ValueError:
                 continue
@@ -334,7 +334,8 @@ def create_first_family_id():
 
 def get_indiv_id_prefix(cohort_identifier_code):
     while True:
-        try: prefix_input = input(f"Enter two-letter code that will serve as first two charactrers of new adsp_ids for {cohort_identifier_code}")
+        try: 
+            prefix_input = input(f"Enter two-letter code that will serve as first two charactrers of new adsp_ids for {cohort_identifier_code}...")
         except ValueError:
             continue
         if len(prefix_input) is not 2:
