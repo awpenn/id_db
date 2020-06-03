@@ -23,7 +23,7 @@
 
 ## Run from pulled image
 - `docker pull awpenn/jupy:2.0.1` *2.0.1 as of 5/27*
-- `docker run -ti -p 8080:8888 awpenn/jupy:2.0.1 bash`
+- `docker run -ti -p 8080:8888 awpenn/jupy:2.0.2 bash`
 
 - start jupyter notebook *(allow root just for dev)*
     - `jupyter notebook --ip=0.0.0.0 --port=8888 --allow-root` 

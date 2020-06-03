@@ -9,6 +9,8 @@ CREATE TYPE "public"."subject_type" AS ENUM('case/control', 'family', 'other');
 		"cohort_identifier_code" VARCHAR(10) NOT NULL,
 		"full_sitename" VARCHAR(100),
 		"description" VARCHAR (100),
+		"adsp_id_leading_letter" VARCHAR(1) NOT NULL,
+		"adsp_generated_ids_prefix" VARCHAR(10) NOT NULL,
 		"createdat" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT current_timestamp,
 		PRIMARY KEY ("id")
 	);
