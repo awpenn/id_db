@@ -79,3 +79,4 @@ CREATE TYPE "public"."subject_type" AS ENUM('case/control', 'family', 'other');
 		"cohort" VARCHAR(10),
 		PRIMARY KEY ("id")
 	);	
+
