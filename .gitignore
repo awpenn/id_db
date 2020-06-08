@@ -3,3 +3,4 @@
 .vscode
 .DS_Store
 devnotes.md
+adspid-fdw-setup.sql
