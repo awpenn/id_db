@@ -10,6 +10,13 @@ GRANT INSERT, SELECT, UPDATE ON TABLE public.generated_ids TO manager;
 
 GRANT INSERT, SELECT, UPDATE ON TABLE public.sample_ids TO manager;
 
+GRANT SELECT ON TABLE public.cdb_subjects_cohorts_linked TO manager;
+
+GRANT SELECT ON TABLE public.nacc_linked TO manager;
+
+GRANT SELECT ON TABLE public.cdb_cohorts_linked TO manager;
+
+
 GRANT SELECT ON public.lookup TO manager;
 GRANT SELECT ON public.lookup_aliases TO manager;
 GRANT SELECT ON public.lookup_cc TO manager;
@@ -47,6 +54,12 @@ GRANT SELECT ON public.cohort_identifier_codes TO viewer;
 GRANT SELECT ON public.generated_ids TO viewer;
 
 GRANT SELECT ON public.sample_ids TO viewer;
+
+GRANT SELECT ON TABLE public.cdb_subjects_cohorts_linked TO viewer;
+
+GRANT SELECT ON TABLE public.nacc_linked TO viewer;
+
+GRANT SELECT ON TABLE public.cdb_cohorts_linked TO viewer;
 
 GRANT SELECT ON public.lookup TO viewer;
 GRANT SELECT ON public.lookup_aliases TO viewer;
