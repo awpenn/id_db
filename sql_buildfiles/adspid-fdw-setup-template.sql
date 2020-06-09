@@ -127,4 +127,4 @@ CREATE FOREIGN TABLE cdb_cohorts_linked
     ) 
 
 SERVER consent_db_link
-OPTIONS (schema_name 'public', table_name 'by_cohorts'); 
+OPTIONS (schema_name 'public', table_name 'by_cohort'); 
