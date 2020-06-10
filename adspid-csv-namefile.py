@@ -162,8 +162,7 @@ def create_dict():
         compare(current_records_dict, new_records_dict)
 
 def legacy_check(legacy_check_dict, callback):
-    """takes a dict of subject data to check in "legacy" condition, processes the legacy check subject data if necessary, and passes the reprocessed dict to the 'combine_new_and_le
-gacy_dicts' function"""
+    """takes a dict of subject data to check in "legacy" condition, processes the legacy check subject data if necessary, and passes the reprocessed dict to the 'combine_new_and_legacy_dicts' function"""
 
     processed_legacy_dict = {}
     for key, value in legacy_check_dict.items():
@@ -182,8 +181,7 @@ gacy_dicts' function"""
             if len(returned_cohort_code_tuple) > 1:
                 print(f'More than one cohort found associated with {key}. Selecting for legacy criteria. Please check database after upload to ensure accuracy.')
                         
-                error_log[key] = [value, 'More than one cohort found for subject in legacy check. Writing with one selected from legacy cohorts, but check database to ensure accura
-cy.']
+                error_log[key] = [value, 'More than one cohort found for subject in legacy check. Writing with one selected from legacy cohorts, but check database to ensure accuracy.']
                         
                 print('Associated cohort codes found:')
                 for var in returned_cohort_code_tuple:
@@ -194,8 +192,7 @@ cy.']
                         processed_legacy_dict[f'{returned_cohort_code}-{lookup_id}'] = [query_family_id, site_indiv_id, lookup_id, returned_cohort_code]
                     
                     else:
-                        error_log[key] = [value, 'More than one cohort found for subject in legacy check, and none found matching legacy conditions. Check your loadfile and the dat
-abase.']
+                        error_log[key] = [value, 'More than one cohort found for subject in legacy check, and none found matching legacy conditions. Check your loadfile and the database.']
                         break
             else:
                 print(f'No associated cohort was found for {key}.  NIALOAD has been assigned, but check the database and log to assure correctness.')
@@ -208,8 +205,7 @@ abase.']
     callback(processed_legacy_dict)
 
 def compare(current_records_dict, new_records_dict):
-    """takes as input the dict made of subject data from the database and the dict created from data in the loadfile.  Compares new data with existing data to determine if new db w
-rites need to occur, and if new subjects are found, they are passed to the 'write_to_database' function"""
+    """takes as input the dict made of subject data from the database and the dict created from data in the loadfile.  Compares new data with existing data to determine if new db writes need to occur, and if new subjects are found, they are passed to the 'write_to_database' function"""
 
     records_to_database_dict = {}
     for key, value in new_records_dict.items():
@@ -266,8 +262,7 @@ def write_to_database(records_to_database_dict):
         ## get adsp_family_id based on site_fam_id AND the cohort retrieved above, or flag if none exists, IF family id switch is True
         if family_data_creation:
             if create_family_ids:
-                retrieved_fam_id = database_connection(f"SELECT DISTINCT adsp_family_id FROM generated_ids WHERE site_fam_id = '{site_fam_id}' AND cohort_identifier_code_key = '{co
-hort_identifier_code_key}'")
+                retrieved_fam_id = database_connection(f"SELECT DISTINCT adsp_family_id FROM generated_ids WHERE site_fam_id = '{site_fam_id}' AND cohort_identifier_code_key = '{cohort_identifier_code_key}'")
                 if len(retrieved_fam_id) > 0:
                     for row in retrieved_fam_id:
                         adsp_family_id = row[0]   
@@ -277,8 +272,7 @@ hort_identifier_code_key}'")
                     make_fam_id = input('Do you want to generate a new ADSP_family_id for this site_family_id?(y/n) ')
                     if(make_fam_id == 'y'):
                         print(f'making fam id, finding last made family id for {cohort_identifier_code}')
-                        retrieved_adsp_family = database_connection(f"SELECT adsp_family_id FROM lookup WHERE cohort_identifier_code = '{cohort_identifier_code}' AND adsp_family_id
- IS NOT NULL ORDER BY adsp_family_id DESC LIMIT 1")
+                        retrieved_adsp_family = database_connection(f"SELECT adsp_family_id FROM lookup WHERE cohort_identifier_code = '{cohort_identifier_code}' AND adsp_family_id IS NOT NULL ORDER BY adsp_family_id DESC LIMIT 1")
 
                         if len(retrieved_adsp_family) < 1:
                             make_first_fam_id = input('There are no existing family ids for this cohort.  Do you want to create the first one?(y/n) ')
@@ -306,8 +300,7 @@ hort_identifier_code_key}'")
             else:
                 adsp_family_id = "NA"
         ## `builder_lookup` ignores validity flag when looking for the latest adsp_partial_id created, so doesnt duplicate one that was created and made not valid
-        retrieved_partial = database_connection(f"SELECT adsp_indiv_partial_id FROM builder_lookup WHERE cohort_identifier_code = '{cohort_identifier_code}' ORDER BY adsp_indiv_par
-tial_id DESC LIMIT 1")
+        retrieved_partial = database_connection(f"SELECT adsp_indiv_partial_id FROM builder_lookup WHERE cohort_identifier_code = '{cohort_identifier_code}' ORDER BY adsp_indiv_partial_id DESC LIMIT 1")
 
         if len(retrieved_partial) < 1:
             print(f"No adsp_indiv_partial found associated with {cohort_identifier_code}.")
@@ -320,13 +313,11 @@ tial_id DESC LIMIT 1")
                     
                 adsp_id = f'{id_prefix}-{cohort_identifier_code}-{adsp_indiv_partial_id}'
 
-                database_connection(f"INSERT INTO generated_ids (site_fam_id, site_indiv_id, cohort_identifier_code_key, lookup_id, adsp_family_id, adsp_indiv_partial_id, adsp_id, 
-subject_type) VALUES ('{site_fam_id}','{site_indiv_id}',{cohort_identifier_code_key},'{lookup_id}','{adsp_family_id}','{adsp_indiv_partial_id}','{adsp_id}','{subject_type}')")
+                database_connection(f"INSERT INTO generated_ids (site_fam_id, site_indiv_id, cohort_identifier_code_key, lookup_id, adsp_family_id, adsp_indiv_partial_id, adsp_id, subject_type) VALUES ('{site_fam_id}','{site_indiv_id}',{cohort_identifier_code_key},'{lookup_id}','{adsp_family_id}','{adsp_indiv_partial_id}','{adsp_id}','{subject_type}')")
                 success_id_log.append(adsp_id)
 
             else:   
-                error_log[key] = [value, f'Error: No indiv_partial was returned when queried for cohort code: {cohort_identifier_code}, and the user chose not to create the first i
-d for the cohort. No record was created.']
+                error_log[key] = [value, f'Error: No indiv_partial was returned when queried for cohort code: {cohort_identifier_code}, and the user chose not to create the first id for the cohort. No record was created.']
                 continue
         else:
 
@@ -340,8 +331,7 @@ d for the cohort. No record was created.']
 
             adsp_id = f'{id_prefix}-{cohort_identifier_code}-{adsp_indiv_partial_id}'
 
-            database_connection(f"INSERT INTO generated_ids (site_fam_id, site_indiv_id, cohort_identifier_code_key, lookup_id, adsp_family_id, adsp_indiv_partial_id, adsp_id, subj
-ect_type) VALUES ('{site_fam_id}','{site_indiv_id}',{cohort_identifier_code_key},'{lookup_id}','{adsp_family_id}','{adsp_indiv_partial_id}','{adsp_id}','{subject_type}')")
+            database_connection(f"INSERT INTO generated_ids (site_fam_id, site_indiv_id, cohort_identifier_code_key, lookup_id, adsp_family_id, adsp_indiv_partial_id, adsp_id, subject_type) VALUES ('{site_fam_id}','{site_indiv_id}',{cohort_identifier_code_key},'{lookup_id}','{adsp_family_id}','{adsp_indiv_partial_id}','{adsp_id}','{subject_type}')")
             success_id_log.append(adsp_id)
 
 def create_first_family_id():
