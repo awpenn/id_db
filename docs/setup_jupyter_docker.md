@@ -51,3 +51,12 @@
 
 - shifted some things around in image version:
     - made scripts dir with log/source dirs, and the script so that launch notebook from that dir the user cant see/access all the scripts/envs etc. 
+
+
+## TLJH Setup
+- followed instructions at: http://tljh.jupyter.org/en/latest/contributing/dev-setup.html
+    - if error about sth. like cgroup and mount failure, stop and restart the def machine
+
+- had to install python-conda(?) with pip3
+
+- add user as admin, then the first time the user logs in, they'll set the password
