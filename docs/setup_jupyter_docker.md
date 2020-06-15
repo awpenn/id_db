@@ -17,7 +17,9 @@
     - `pip3 install jupyter`
 
 - pull id_db repo and run setup.sh
-- in activated .venv: `ipython kernel install --user --name=.venv`
+- in activated .venv: 
+    - `pip3 install ipython ipykernel`
+    - `ipython kernel install --user --name=.venv`
 - in running notebook, copy `.env-template` to `.env` and add config info
 
 
@@ -43,7 +45,7 @@
 - to run (temp fix)(added to image version of adspid-csv.py for now)
     - `import sys`
     - `sys.path.append('/id_db/.venv/lib/python3.6/site-packages')`
-    - `%run -i 'adspid-csv.py'`
+    - `%run -i '../id_db/adspid-csv-namefile.py'`
 
     - sys.path.append('/id_db/.venv/lib/python3.6/site-packages')
 
@@ -60,3 +62,28 @@
 - had to install python-conda(?) with pip3
 
 - add user as admin, then the first time the user logs in, they'll set the password
+- setup id_db repo:
+    - git clone https://github.com/jupyterhub/the-littlest-jupyterhub.git to parent of users (`/root/home?`)
+    - cd into repo, then `docker build -t tljh-systemd . -f integration-tests/Dockerfile`
+    - docker run \--privileged \--detach \--name=adsp-jh \--publish 12000:80 \--mount type=bind,source=$(pwd),target=/srv/src \tljh-systemd 
+    docker run \--privileged \--detach \--name=adsp-jh \--publish 12000:80 \--mount type=bind,source=$(pwd),target=/srv/src \awpenn/adsp-jh:1.0.0
+    - docker exec -it tljh-dev /bin/bash
+    - python3 /srv/src/bootstrap/bootstrap.py --admin admin:admin
+
+### setting up dependencies and etc.
+- as admin, use terminal **in jupyterhub browser** to do following:
+
+    - sudo apt-get install libpq-dev -y
+    - sudo apt-get install python3.7-dev -y
+    - sudo pip install -U pip
+    - sudo pip install setuptools
+    - sudo -H pip install psycopg2==2.8.4 python-dotenv==0.12.0
+
+    - create `source_files`, `log_files`, and `success_lists` dirs
+- as user, create new notebook, run script with: 
+    - %run -i '../id_db/adspid-csv.py'
+
+### Setup without docker
+- follow instructions at: http://tljh.jupyter.org/en/latest/install/custom-server.html
+
+
