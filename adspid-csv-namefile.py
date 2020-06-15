@@ -243,13 +243,7 @@ def write_to_database(records_to_database_dict):
 
         cohort_identifier_code = value[3]
 
-        if cohort_identifier_code in g_cohorts or cohort_identifier_code in c_cohorts:
-            if cohort_identifier_code in g_cohorts:
-                id_prefix = 'G'
-            else:
-                id_prefix = 'C'
-        else:
-            id_prefix = 'A'
+        id_prefix = database_connection(f"SELECT DISTINCT adsp_id_leading_letter FROM cohort_identifier_codes WHERE cohort_identifier_code = '{cohort_identifier_code}'")[0][0]
 
         ## initialized as NA, will change if fam is switched on
         adsp_family_id = 'NA'
@@ -320,11 +314,11 @@ def write_to_database(records_to_database_dict):
                 error_log[key] = [value, f'Error: No indiv_partial was returned when queried for cohort code: {cohort_identifier_code}, and the user chose not to create the first id for the cohort. No record was created.']
                 continue
         else:
-
             for row in retrieved_partial:
                 last_partial_created = row[0]
             
-            prefix = last_partial_created[:2]
+            prefix = database_connection(f"SELECT DISTINCT adsp_generated_ids_prefix FROM cohort_identifier_codes WHERE cohort_identifier_code = '{cohort_identifier_code}'")[0][0]
+
             incremental = int(last_partial_created[2:])+1
 
             adsp_indiv_partial_id = f'{prefix}{str(incremental).zfill(6)}'
