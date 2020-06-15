@@ -18,6 +18,7 @@ GRANT SELECT ON TABLE public.cdb_cohorts_linked TO manager;
 
 
 GRANT SELECT ON public.lookup TO manager;
+GRANT SELECT ON public.builder_lookup TO manager;
 GRANT SELECT ON public.lookup_aliases TO manager;
 GRANT SELECT ON public.lookup_cc TO manager;
 GRANT SELECT ON public.lookup_fam TO manager;
@@ -62,6 +63,7 @@ GRANT SELECT ON TABLE public.nacc_linked TO viewer;
 GRANT SELECT ON TABLE public.cdb_cohorts_linked TO viewer;
 
 GRANT SELECT ON public.lookup TO viewer;
+GRANT SELECT ON public.builder_lookup TO viewer;
 GRANT SELECT ON public.lookup_aliases TO viewer;
 GRANT SELECT ON public.lookup_cc TO viewer;
 GRANT SELECT ON public.lookup_fam TO viewer;

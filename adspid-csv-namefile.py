@@ -269,12 +269,12 @@ def write_to_database(records_to_database_dict):
                 else:
                     print(f'there seems to be no adsp_family_id found associated with site family id {site_fam_id}. Please check the database')
                     # error_log[key] = [value, 'No adsp_family_id was found for this subject's site_family_id']
-                    make_fam_id = input('Do you want to generate a new ADSP_family_id for this site_family_id?(y/n) ')
+                    make_fam_id = input('Do you want to generate a new ADSP_family_id for this site_family_id?(y/n)')
                     if(make_fam_id == 'y'):
                         print(f'making fam id, finding last made family id for {cohort_identifier_code}')
-                        retrieved_adsp_family = database_connection(f"SELECT adsp_family_id FROM lookup WHERE cohort_identifier_code = '{cohort_identifier_code}' AND adsp_family_id IS NOT NULL ORDER BY adsp_family_id DESC LIMIT 1")
+                        retrieved_adsp_family = database_connection(f"SELECT adsp_family_id FROM lookup WHERE cohort_identifier_code = 'LOAD' AND adsp_family_id != 'NULL' AND adsp_family_id != 'NA' ORDER BY adsp_family_id DESC LIMIT 1")
 
-                        if len(retrieved_adsp_family) < 1:
+                        if retrieved_adsp_family[0][0] == 'NULL':
                             make_first_fam_id = input('There are no existing family ids for this cohort.  Do you want to create the first one?(y/n) ')
                             if make_first_fam_id == 'y':
                                 # need to check valid length here and re-call, then assign as adsp_family_id
@@ -286,7 +286,7 @@ def write_to_database(records_to_database_dict):
                         else:
                             print(f'An adsp_family_id was returned as last made for {cohort_identifier_code}')
                             most_recent_family_id = retrieved_adsp_family[0][0]
-                            print(retrieved_adsp_family)
+                            print(most_recent_family_id)
                             prefix = most_recent_family_id[:2]
                             id_numeric_end = len(most_recent_family_id)-1
                             incremental = int(most_recent_family_id[2:id_numeric_end])+1
