@@ -72,9 +72,9 @@ GRANT SELECT ON public.subjects_samples_ids TO viewer;
 
 -- PERMISSIONS FOR ID CHECK AND GENERATE
 
-GRANT INSERT, SELECT ON TABLE public.cohort_identifier_codes TO adsp_id_generator;
+GRANT SELECT ON TABLE public.cohort_identifier_codes TO adsp_id_generator;
 
-GRANT SELECT ON TABLE public.generated_ids TO adsp_id_generator;
+GRANT INSERT, SELECT ON TABLE public.generated_ids TO adsp_id_generator;
 
 GRANT USAGE ON SEQUENCE public.generated_ids_id_seq TO adsp_id_generator;
 
