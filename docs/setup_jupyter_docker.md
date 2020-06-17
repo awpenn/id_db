@@ -59,7 +59,7 @@
 - followed instructions at: http://tljh.jupyter.org/en/latest/contributing/dev-setup.html
     - if error about sth. like cgroup and mount failure, stop and restart the def machine
 
-- had to install python-conda(?) with pip3
+- had to install python-conda(?) with pip3 //otherwise, need sufficient RAM (test with 8G Droplet worked)
 
 - add user as admin, then the first time the user logs in, they'll set the password
 - setup id_db repo:
@@ -79,9 +79,13 @@
     - sudo pip install setuptools
     - sudo -H pip install psycopg2==2.8.4 python-dotenv==0.12.0
 
+    sudo apt-get install libpq-dev python3.7-dev -y
+    sudo pip install -U pip
+    sudo -H pip install setuptools psycopg2==2.8.4 python-dotenv==0.12.0
+
     - create `source_files`, `log_files`, and `success_lists` dirs
 - as user, create new notebook, run script with: 
-    - %run -i '../id_db/adspid-csv.py'
+    - %run -i '../id_db/adspid-csv-namefile.py'
 
 ### Setup without docker
 - follow instructions at: http://tljh.jupyter.org/en/latest/install/custom-server.html

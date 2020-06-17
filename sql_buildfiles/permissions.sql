@@ -69,3 +69,19 @@ GRANT SELECT ON public.lookup_cc TO viewer;
 GRANT SELECT ON public.lookup_fam TO viewer;
 GRANT SELECT ON public.subjects_samples TO viewer;
 GRANT SELECT ON public.subjects_samples_ids TO viewer;
+
+-- PERMISSIONS FOR ID CHECK AND GENERATE
+
+GRANT INSERT, SELECT ON TABLE public.cohort_identifier_codes TO adsp_id_generator;
+
+GRANT SELECT ON TABLE public.generated_ids TO adsp_id_generator;
+
+GRANT USAGE ON SEQUENCE public.generated_ids_id_seq TO adsp_id_generator;
+
+GRANT SELECT ON public.lookup TO adsp_id_generator;
+GRANT SELECT ON public.builder_lookup TO adsp_id_generator;
+GRANT SELECT ON public.lookup_aliases TO adsp_id_generator;
+GRANT SELECT ON public.lookup_cc TO adsp_id_generator;
+GRANT SELECT ON public.lookup_fam TO adsp_id_generator;
+GRANT SELECT ON public.subjects_samples TO adsp_id_generator;
+GRANT SELECT ON public.subjects_samples_ids TO adsp_id_generator;
