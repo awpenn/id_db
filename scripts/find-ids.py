@@ -50,6 +50,8 @@ def main():
 
     create_csv(retrieved_data)
 
+    print(f'Process completed with {len(error_log)} error(s). Output csv file is in log_files directory.')
+
 def database_connection(query):
     """takes a string SQL statement as input, and depending on the type of statement either performs an insert or returns data from the database"""
 
