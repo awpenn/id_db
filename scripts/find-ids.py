@@ -123,7 +123,7 @@ def create_csv(retrieved_data_dict):
     """takes the dict created in the lookup function, creates a csv of the data"""
     timestamp = calendar.timegm(time.gmtime())
     retrieved_columns = database_connection("SELECT column_name FROM information_schema.columns WHERE table_name = 'generated_ids'")
-    column_names = []
+    column_names = ["supplied_id"]
 
     for name in retrieved_columns:
         column_names.append(name[0])
@@ -132,7 +132,9 @@ def create_csv(retrieved_data_dict):
         csv_writer = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         csv_writer.writerow(column_names)
         for key, record in retrieved_data_dict.items():
-            csv_writer.writerow(record)
+            reclist = list(record)
+            reclist.insert(0,key)
+            csv_writer.writerow(reclist)
 
 def generate_errorlog():
     """creates error log and writes to 'log_files' directory"""
