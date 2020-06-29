@@ -149,20 +149,6 @@ def generate_errorlog():
         f.write(f'combined_site_id: {value[0][2]}\n')
         f.write(f'cohort_identifier_code: {value[0][3]}\n\n')
 
-def generate_success_list():
-    """creates a list of successfully created and inserted ADSP IDs"""
-
-    timestamp = calendar.timegm(time.gmtime())
-    f = open(f'../log_files/success_lists/{timestamp}-generated_ids.txt', 'w+')
-    for id in success_id_log:
-        if success_id_log.index(id) >= len(success_id_log)-1:
-            f.write(id)
-        else:
-            f.write(id + ', ')
-
-    f.close()
-
 if __name__ == '__main__':
     main()
     generate_errorlog()
-    generate_success_list()
