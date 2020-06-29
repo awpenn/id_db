@@ -122,7 +122,7 @@ def find_corresponding_ids(loadfile):
 def create_csv(retrieved_data_dict):
     """takes the dict created in the lookup function, creates a csv of the data"""
     timestamp = calendar.timegm(time.gmtime())
-    retrieved_columns = database_connection("SELECT column_name FROM information_schema.columns WHERE table_name = 'generated_ids'")
+    retrieved_columns = database_connection("SELECT column_name FROM information_schema.columns WHERE table_name = 'lookup'")
     column_names = ["supplied_id"]
 
     for name in retrieved_columns:
