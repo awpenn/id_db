@@ -1,6 +1,3 @@
-import sys
-sys.path.append('/id_db/.venv/lib/python3.6/site-packages')
-
 import psycopg2
 import csv
 from dotenv import load_dotenv
@@ -24,36 +21,14 @@ DBPASS = os.getenv('DBPASS')
 DBPORT = os.getenv('DBPORT')
 DB = os.getenv('DB')
 DBUSER = os.getenv('DBUSER')
-LOADFILE = ''
+LOADFILE = os.getenv('LOADFILE')
 
 def main():
     """main conductor function for the script.  Takes some input about the type of data being uploaded and runs the process from there."""
     
     global family_data_creation
     global create_family_ids
-    global LOADFILE
-   
-    def get_filename():
-        while True:
-            try:
-                filename_input = input(f"Enter loadfile name. ")
-            except ValueError:
-                continue
-            if len(filename_input) < 4:
-                print('Please enter a valid filename.')
-                continue
-            else:
-                if '.csv' not in filename_input:
-                    print("Please make sure you've uploaded a .csv file.")
-                    continue
-                else:
-                    filename = filename_input
-                    break
-        
-        return filename
-
-    LOADFILE = get_filename()
-
+    
     select_casefam = input('Are you loading family data? (y/n) ')
     if select_casefam not in ['y', 'n', 'Y', 'N', 'yes', 'no', 'YES', 'NO', 'Yes', 'No']:
         main()
@@ -131,7 +106,7 @@ def create_dict():
         
         current_records_dict[f'{cohort_identifier_code}-{lookup_id}'] = row
 
-    with open(f'./source_files/{LOADFILE}', mode='r', encoding='utf-8-sig') as csv_file:
+    with open(f'../source_files/{LOADFILE}', mode='r', encoding='utf-8-sig') as csv_file:
         new_records = csv.reader(csv_file) 
 
         for row in new_records:
@@ -243,7 +218,13 @@ def write_to_database(records_to_database_dict):
 
         cohort_identifier_code = value[3]
 
-        id_prefix = database_connection(f"SELECT DISTINCT adsp_id_leading_letter FROM cohort_identifier_codes WHERE cohort_identifier_code = '{cohort_identifier_code}'")[0][0]
+        if cohort_identifier_code in g_cohorts or cohort_identifier_code in c_cohorts:
+            if cohort_identifier_code in g_cohorts:
+                id_prefix = 'G'
+            else:
+                id_prefix = 'C'
+        else:
+            id_prefix = 'A'
 
         ## initialized as NA, will change if fam is switched on
         adsp_family_id = 'NA'
@@ -263,12 +244,12 @@ def write_to_database(records_to_database_dict):
                 else:
                     print(f'there seems to be no adsp_family_id found associated with site family id {site_fam_id}. Please check the database')
                     # error_log[key] = [value, 'No adsp_family_id was found for this subject's site_family_id']
-                    make_fam_id = input('Do you want to generate a new ADSP_family_id for this site_family_id?(y/n)')
+                    make_fam_id = input('Do you want to generate a new ADSP_family_id for this site_family_id?(y/n) ')
                     if(make_fam_id == 'y'):
                         print(f'making fam id, finding last made family id for {cohort_identifier_code}')
-                        retrieved_adsp_family = database_connection(f"SELECT adsp_family_id FROM lookup WHERE cohort_identifier_code = 'LOAD' AND adsp_family_id != 'NULL' AND adsp_family_id != 'NA' ORDER BY adsp_family_id DESC LIMIT 1")
+                        retrieved_adsp_family = database_connection(f"SELECT adsp_family_id FROM lookup WHERE cohort_identifier_code = '{cohort_identifier_code}' AND adsp_family_id IS NOT NULL ORDER BY adsp_family_id DESC LIMIT 1")
 
-                        if retrieved_adsp_family[0][0] == 'NULL':
+                        if len(retrieved_adsp_family) < 1:
                             make_first_fam_id = input('There are no existing family ids for this cohort.  Do you want to create the first one?(y/n) ')
                             if make_first_fam_id == 'y':
                                 # need to check valid length here and re-call, then assign as adsp_family_id
@@ -280,7 +261,7 @@ def write_to_database(records_to_database_dict):
                         else:
                             print(f'An adsp_family_id was returned as last made for {cohort_identifier_code}')
                             most_recent_family_id = retrieved_adsp_family[0][0]
-                            print(most_recent_family_id)
+                            print(retrieved_adsp_family)
                             prefix = most_recent_family_id[:2]
                             id_numeric_end = len(most_recent_family_id)-1
                             incremental = int(most_recent_family_id[2:id_numeric_end])+1
@@ -314,11 +295,11 @@ def write_to_database(records_to_database_dict):
                 error_log[key] = [value, f'Error: No indiv_partial was returned when queried for cohort code: {cohort_identifier_code}, and the user chose not to create the first id for the cohort. No record was created.']
                 continue
         else:
+
             for row in retrieved_partial:
                 last_partial_created = row[0]
             
-            prefix = database_connection(f"SELECT DISTINCT adsp_generated_ids_prefix FROM cohort_identifier_codes WHERE cohort_identifier_code = '{cohort_identifier_code}'")[0][0]
-
+            prefix = last_partial_created[:2]
             incremental = int(last_partial_created[2:])+1
 
             adsp_indiv_partial_id = f'{prefix}{str(incremental).zfill(6)}'
@@ -369,7 +350,7 @@ def generate_errorlog():
     """creates error log and writes to 'log_files' directory"""
 
     timestamp = calendar.timegm(time.gmtime())
-    f = open(f'./log_files/{timestamp}-log.txt', 'w+')
+    f = open(f'../log_files/{timestamp}-log.txt', 'w+')
     f.write(f'{str(len(error_log.items()))} flag(s) raised in runtime. See details below: \n\n')
     for key, value in error_log.items():
         f.write(f'Error: {value[1]} \n')
@@ -382,7 +363,7 @@ def generate_success_list():
     """creates a list of successfully created and inserted ADSP IDs"""
 
     timestamp = calendar.timegm(time.gmtime())
-    f = open(f'./log_files/success_lists/{timestamp}-generated_ids.txt', 'w+')
+    f = open(f'../log_files/success_lists/{timestamp}-generated_ids.txt', 'w+')
     for id in success_id_log:
         if success_id_log.index(id) >= len(success_id_log)-1:
             f.write(id)
