@@ -68,15 +68,3 @@ CREATE TYPE "public"."subject_type" AS ENUM('case/control', 'family', 'other');
 		--adsp id for the subject from whom the sample was derived.
 		"createdat" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT current_timestamp
 	);
-	
-	/*for testing python, not production*/
-	CREATE TABLE "new_ids" (
-		"id" SERIAL NOT NULL,
-		"site_family_id" VARCHAR(25),
-		"site_indiv_id" VARCHAR(25),
-		--"site_combined_id" VARCHAR(25),
-		--local_id is the combined fam and indiv id
-		"cohort" VARCHAR(10),
-		PRIMARY KEY ("id")
-	);	
-
