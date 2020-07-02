@@ -15,6 +15,8 @@ error_log = {}
 family_data_creation = False
 create_family_ids = False
 
+special_cohorts = ['LOAD', 'RAS', 'UPN']
+
 load_dotenv()
 DBIP = os.getenv('DBIP')
 DBPASS = os.getenv('DBPASS')
@@ -128,7 +130,7 @@ def create_dict():
         
         current_records_dict[f'{cohort_identifier_code}-{lookup_id}'] = row
 
-    with open(f'../source_files/{LOADFILE}', mode='r', encoding='utf-8-sig') as csv_file:
+    with open(f'./source_files/{LOADFILE}', mode='r', encoding='utf-8-sig') as csv_file:
         new_records = csv.reader(csv_file) 
 
         for row in new_records:
@@ -366,7 +368,7 @@ def generate_errorlog():
     """creates error log and writes to 'log_files' directory"""
 
     timestamp = calendar.timegm(time.gmtime())
-    f = open(f'../log_files/{timestamp}-log.txt', 'w+')
+    f = open(f'./log_files/{timestamp}-log.txt', 'w+')
     f.write(f'{str(len(error_log.items()))} flag(s) raised in runtime. See details below: \n\n')
     for key, value in error_log.items():
         f.write(f'Error: {value[1]} \n')
@@ -379,7 +381,7 @@ def generate_success_list():
     """creates a list of successfully created and inserted ADSP IDs"""
 
     timestamp = calendar.timegm(time.gmtime())
-    f = open(f'../log_files/success_lists/{timestamp}-generated_ids.txt', 'w+')
+    f = open(f'./log_files/success_lists/{timestamp}-generated_ids.txt', 'w+')
     for id in success_id_log:
         if success_id_log.index(id) >= len(success_id_log)-1:
             f.write(id)
