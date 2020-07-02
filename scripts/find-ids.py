@@ -108,7 +108,7 @@ def find_corresponding_ids(loadfile):
                 print(f"No matching records found for {supplied_id_type} {supplied_id}")
                 error_log[f'{supplied_id}-NONE'] = [supplied_id, f'No record was found matching {supplied_id}.']
 
-    with open(f'../source_files/{LOADFILE}', mode='r', encoding='utf-8-sig') as csv_file:
+    with open(f'./source_files/{LOADFILE}', mode='r', encoding='utf-8-sig') as csv_file:
         """"determine whether am looking for data by adspid or site_indiv_id"""
         ids_from_loadfile = csv.reader(csv_file)
         for row in ids_from_loadfile:
@@ -130,7 +130,7 @@ def create_csv(retrieved_data_dict):
     for name in retrieved_columns:
         column_names.append(name[0])
 
-    with open(f'../log_files/ids-{timestamp}.csv', mode='w+', encoding='utf-8-sig') as csv_file:
+    with open(f'./log_files/ids-{timestamp}.csv', mode='w+', encoding='utf-8-sig') as csv_file:
         csv_writer = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         csv_writer.writerow(column_names)
         for key, record in retrieved_data_dict.items():
@@ -142,7 +142,7 @@ def generate_errorlog():
     """creates error log and writes to 'log_files' directory"""
 
     timestamp = calendar.timegm(time.gmtime())
-    f = open(f'../log_files/{timestamp}-log.txt', 'w+')
+    f = open(f'./log_files/{timestamp}-log.txt', 'w+')
     f.write(f'{str(len(error_log.items()))} flag(s) raised in runtime. See details below: \n\n')
     for key, value in error_log.items():
         f.write(f'Error: {value[1]} \n')
