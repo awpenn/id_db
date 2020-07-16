@@ -19,7 +19,7 @@ CREATE TYPE "public"."subject_type" AS ENUM('case/control', 'family', 'other');
 	CREATE TABLE IF NOT EXISTS "generated_ids" (
 		"id" SERIAL NOT NULL,
 			--PK for table
-		"site_fam_id" VARCHAR(50) NOT NULL,
+		"site_fam_id" VARCHAR(50),
 			--non-ADSP family id (site specific)
 		"site_indiv_id" VARCHAR (50),
 			--non-ADSP individual id (site specific)
