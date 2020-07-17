@@ -409,3 +409,4 @@ if __name__ == '__main__':
     main()
     generate_errorlog()
     generate_success_list()
+    print('Loading complete.')
