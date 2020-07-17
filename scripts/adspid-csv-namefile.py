@@ -130,7 +130,7 @@ def create_dict():
         
         current_records_dict[f'{cohort_identifier_code}-{lookup_id}'] = row
 
-    with open(f'../source_files/{LOADFILE}', mode='r', encoding='utf-8-sig') as csv_file:
+    with open(f'./source_files/{LOADFILE}', mode='r', encoding='utf-8-sig') as csv_file:
         new_records = csv.reader(csv_file) 
 
         for row in new_records:
