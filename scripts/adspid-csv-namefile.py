@@ -130,7 +130,7 @@ def create_dict():
         
         current_records_dict[f'{cohort_identifier_code}-{lookup_id}'] = row
 
-    with open(f'./source_files/{LOADFILE}', mode='r', encoding='utf-8-sig') as csv_file:
+    with open(f'../source_files/{LOADFILE}', mode='r', encoding='utf-8-sig') as csv_file:
         new_records = csv.reader(csv_file) 
 
         for row in new_records:
@@ -170,6 +170,19 @@ def legacy_check(legacy_check_dict, callback):
         lookup_id = value[2]
         cohort_identifier_code = value[3]
 
+        multiple_returned_cohorts = []
+
+        def get_user_input():
+
+            selected_cohort = input(f"Which dataset would you like to update?: {multiple_returned_cohorts}\n")
+
+            if selected_cohort not in multiple_returned_cohorts:
+                print(f"{selected_cohort} is not a valid choice, select from the list.")
+                get_user_input()
+            else:
+                return selected_cohort
+
+
         returned_cohort_code_tuple = database_connection(f"SELECT DISTINCT cohort_identifier_code FROM lookup WHERE site_fam_id = '{query_family_id}'")
         print(f'length of tuple returned for family_id {query_family_id} fetch is {len(returned_cohort_code_tuple)}')
 
@@ -178,21 +191,23 @@ def legacy_check(legacy_check_dict, callback):
 
         else:
             if len(returned_cohort_code_tuple) > 1:
-                print(f'More than one cohort found associated with {key}. Selecting for legacy criteria. Please check database after upload to ensure accuracy.')
-                        
+                print(f'More than one cohort found associated with {key}. Selecting for legacy criteria. Please check database after upload to ensure accuracy.') 
                 error_log[key] = [value, 'More than one cohort found for subject in legacy check. Writing with one selected from legacy cohorts, but check database to ensure accuracy.']
-                        
-                print('Associated cohort codes found:')
-                for var in returned_cohort_code_tuple:
-                    print(var[0])
 
-                    if var[0] in special_cohorts:
-                        returned_cohort_code = var[0]
-                        processed_legacy_dict[f'{returned_cohort_code}-{lookup_id}'] = [query_family_id, site_indiv_id, lookup_id, returned_cohort_code]
+                for returned in returned_cohort_code_tuple:
+                    multiple_returned_cohorts.append(returned[0])
+
+                selected_cohort = get_user_input()
+                print('Associated cohort codes found:')
+
+                if selected_cohort in special_cohorts:
+                    returned_cohort_code = selected_cohort
+                    processed_legacy_dict[f'{returned_cohort_code}-{lookup_id}'] = [query_family_id, site_indiv_id, lookup_id, returned_cohort_code]
                     
-                    else:
-                        error_log[key] = [value, 'More than one cohort found for subject in legacy check, and none found matching legacy conditions. Check your loadfile and the database.']
-                        break
+                else:
+                    error_log[key] = [value, 'More than one cohort found for subject in legacy check, and none found matching legacy conditions. Check your loadfile and the database.']
+                    break
+
             else:
                 print(f'No associated cohort was found for {key}.  NIALOAD has been assigned, but check the database and log to assure correctness.')
                 returned_cohort_code = 'LOAD'
