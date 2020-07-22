@@ -6,8 +6,6 @@ import os
 import calendar
 import time
 
-load_file = 'new_sample_ids.csv'
-
 load_dotenv()
 DBIP = os.getenv('DBIP')
 DBPASS = os.getenv('DBPASS')
@@ -22,9 +20,33 @@ new_samples_for_database_dict = {}
 marked_as_duplicate_dict = {}
 error_list = []
 
+
+
 def main():
+
+    def get_filename():
+        while True:
+            try:
+                filename_input = input(f"Enter loadfile name. ")
+            except ValueError:
+                continue
+            if len(filename_input) < 4:
+                print('Please enter a valid filename.')
+                continue
+            else:
+                if '.csv' not in filename_input:
+                    print("Please make sure you've uploaded a .csv file.")
+                    continue
+                else:
+                    filename = filename_input
+                    break
+        
+        return filename
+
+    LOADFILE = get_filename()
+
     create_existing_ids_list()
-    create_new_samples_dict()
+    create_new_samples_dict(LOADFILE)
     look_for_duplicates()
     write_to_database()
     generate_duplicate_report()
@@ -63,9 +85,9 @@ def create_existing_ids_list():
     for row in current_samples:
         current_samples_ids.append(row[1])
 
-def create_new_samples_dict():
+def create_new_samples_dict(LOADFILE):
 
-    with open(f'./source_files/{load_file}', mode='r', encoding='utf-8-sig') as csv_file:
+    with open(f'./source_files/{LOADFILE}', mode='r', encoding='utf-8-sig') as csv_file:
         new_samples = csv.reader(csv_file)
         for row in new_samples:
             sample_id = row[0]
