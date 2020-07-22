@@ -76,6 +76,8 @@ GRANT SELECT ON TABLE public.cohort_identifier_codes TO adsp_id_generator;
 
 GRANT INSERT, SELECT ON TABLE public.generated_ids TO adsp_id_generator;
 
+GRANT INSERT, SELECT ON TABLE public.sample_ids TO adsp_id_generator;
+
 GRANT USAGE ON SEQUENCE public.generated_ids_id_seq TO adsp_id_generator;
 
 GRANT SELECT ON public.lookup TO adsp_id_generator;
