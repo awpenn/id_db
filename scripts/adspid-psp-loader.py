@@ -131,7 +131,7 @@ def compare(current_records_dict, new_records_dict):
     
     if len(records_to_database_dict) > 0: 
         print(records_to_database_dict)
-        # write_to_database(records_to_database_dict)
+        write_to_database(records_to_database_dict)
     else:
         print('No new records to create.....')
 
@@ -141,138 +141,28 @@ def write_to_database(records_to_database_dict):
     for key, value in records_to_database_dict.items():
         #need select statement to get id of cohort identifier code, adsp_family_id for site_fam_id, next adsp_indiv_partial_id based on the cohort,
         #next adspid based on the cohort
-        site_fam_id = value[0]
-        site_indiv_id = value[1]
-        if not family_data_creation:
-            lookup_id = site_indiv_id
-            subject_type = 'case/control'
-        else:
-            lookup_id = value[2]
-            subject_type = 'family'
 
-        cohort_identifier_code = value[3]
+        site_indiv_id = value[0]
+        site_fam_id = 'NA'
+        subject_type = 'case/control'
+        lookup_id = site_indiv_id
+        adsp_family_id = 'NA'
+        adsp_indiv_partial_id = 'NA'
+
+        cohort_identifier_code = value[1]
 
         id_prefix = database_connection(f"SELECT DISTINCT adsp_id_leading_letter FROM cohort_identifier_codes WHERE cohort_identifier_code = '{cohort_identifier_code}'")[0][0]
 
-        ## initialized as NA, will change if fam is switched on
-        adsp_family_id = 'NA'
-
         ## get cohort id
         retrieved_cohort_id = database_connection(f"SELECT DISTINCT id FROM cohort_identifier_codes WHERE cohort_identifier_code = '{cohort_identifier_code}'")
+        
         for row in retrieved_cohort_id:
             cohort_identifier_code_key = row[0]
 
-        ## get adsp_family_id based on site_fam_id AND the cohort retrieved above, or flag if none exists, IF family id switch is True
-        if family_data_creation:
-            if create_family_ids:
-                retrieved_fam_id = database_connection(f"SELECT DISTINCT adsp_family_id FROM generated_ids WHERE site_fam_id = '{site_fam_id}' AND cohort_identifier_code_key = '{cohort_identifier_code_key}'")
-                if len(retrieved_fam_id) > 0:
-                    for row in retrieved_fam_id:
-                        adsp_family_id = row[0]   
-                else:
-                    print(f'there seems to be no adsp_family_id found associated with site family id {site_fam_id}. Please check the database')
-                    # error_log[key] = [value, 'No adsp_family_id was found for this subject's site_family_id']
-                    make_fam_id = input('Do you want to generate a new ADSP_family_id for this site_family_id?(y/n)')
-                    if(make_fam_id == 'y'):
-                        print(f'making fam id, finding last made family id for {cohort_identifier_code}')
-                        retrieved_adsp_family = database_connection(f"SELECT adsp_family_id FROM lookup WHERE cohort_identifier_code = 'LOAD' AND adsp_family_id != 'NULL' AND adsp_family_id != 'NA' ORDER BY adsp_family_id DESC LIMIT 1")
-
-                        if retrieved_adsp_family[0][0] == 'NULL':
-                            make_first_fam_id = input('There are no existing family ids for this cohort.  Do you want to create the first one?(y/n) ')
-                            if make_first_fam_id == 'y':
-                                # need to check valid length here and re-call, then assign as adsp_family_id
-                                adsp_family_id = create_first_family_id()
-
-                            else:
-                                error_log[key] = [value, 'There were no adsp_family_ids for this cohort and user did not wish to create new one.']
-                                continue
-                        else:
-                            print(f'An adsp_family_id was returned as last made for {cohort_identifier_code}')
-                            most_recent_family_id = retrieved_adsp_family[0][0]
-                            print(most_recent_family_id)
-                            prefix = most_recent_family_id[:2]
-                            id_numeric_end = len(most_recent_family_id)-1
-                            incremental = int(most_recent_family_id[2:id_numeric_end])+1
-
-                            print(f'{prefix}{str(incremental).zfill(4)}F')
-                            adsp_family_id = f'{prefix}{str(incremental).zfill(4)}F'
-                
-                    else:
-                        print('No adsp family id will be created. "NA" will be assigned')
-                        adsp_family_id = "NA"
-            else:
-                adsp_family_id = "NA"
-        ## `builder_lookup` ignores validity flag when looking for the latest adsp_partial_id created, so doesnt duplicate one that was created and made not valid
-        retrieved_partial = database_connection(f"SELECT adsp_indiv_partial_id FROM builder_lookup WHERE cohort_identifier_code = '{cohort_identifier_code}' ORDER BY adsp_indiv_partial_id DESC LIMIT 1")
-
-        if len(retrieved_partial) < 1:
-            print(f"No adsp_indiv_partial found associated with {cohort_identifier_code}.")
-            make_first_indiv_partial = input(f"Do you want to create the first individual id for {cohort_identifier_code} (y/n) ")
-            if make_first_indiv_partial == 'y':
-                if adsp_family_id is not 'NA':
-                    adsp_indiv_partial_id = f'{adsp_family_id[:2]}{str("1").zfill(6)}'
-                else:
-                    adsp_indiv_partial_id = f'{get_indiv_id_prefix(cohort_identifier_code)}{str("1").zfill(6)}'
-                    
-                adsp_id = f'{id_prefix}-{cohort_identifier_code}-{adsp_indiv_partial_id}'
-
-                database_connection(f"INSERT INTO generated_ids (site_fam_id, site_indiv_id, cohort_identifier_code_key, lookup_id, adsp_family_id, adsp_indiv_partial_id, adsp_id, subject_type) VALUES ('{site_fam_id}','{site_indiv_id}',{cohort_identifier_code_key},'{lookup_id}','{adsp_family_id}','{adsp_indiv_partial_id}','{adsp_id}','{subject_type}')")
-                success_id_log.append(adsp_id)
-
-            else:   
-                error_log[key] = [value, f'Error: No indiv_partial was returned when queried for cohort code: {cohort_identifier_code}, and the user chose not to create the first id for the cohort. No record was created.']
-                continue
-        else:
-            for row in retrieved_partial:
-                last_partial_created = row[0]
-            
-            prefix = database_connection(f"SELECT DISTINCT adsp_generated_ids_prefix FROM cohort_identifier_codes WHERE cohort_identifier_code = '{cohort_identifier_code}'")[0][0]
-
-            incremental = int(last_partial_created[2:])+1
-
-            adsp_indiv_partial_id = f'{prefix}{str(incremental).zfill(6)}'
-
-            adsp_id = f'{id_prefix}-{cohort_identifier_code}-{adsp_indiv_partial_id}'
+            adsp_id = f'{id_prefix}-{cohort_identifier_code}-{site_indiv_id}'
 
             database_connection(f"INSERT INTO generated_ids (site_fam_id, site_indiv_id, cohort_identifier_code_key, lookup_id, adsp_family_id, adsp_indiv_partial_id, adsp_id, subject_type) VALUES ('{site_fam_id}','{site_indiv_id}',{cohort_identifier_code_key},'{lookup_id}','{adsp_family_id}','{adsp_indiv_partial_id}','{adsp_id}','{subject_type}')")
             success_id_log.append(adsp_id)
-
-def create_first_family_id():
-    """takes no input, returns new family id construction based on user input"""
-    
-    def prompt_for_prefix():
-        while True:
-            try:
-                prefix_input = input("Enter two-letter code that will serve as first two characters of the new family_id...")
-
-            except ValueError:
-                continue
-
-            if len(prefix_input) is not 2:
-                print('Please enter two letters for prefix.')
-                continue
-            else:        
-                break
-
-        return prefix_input.upper()
-    
-    first_adsp_family_id = f'{prompt_for_prefix()}{str("1").zfill(4)}F'
-    
-    return first_adsp_family_id
-
-def get_indiv_id_prefix(cohort_identifier_code):
-    while True:
-        try: 
-            prefix_input = input(f"Enter two-letter code that will serve as first two charactrers of new adsp_ids for {cohort_identifier_code}...")
-        except ValueError:
-            continue
-        if len(prefix_input) is not 2:
-            print('please enter two letters for prefix.')
-            continue
-        else:
-            break
-
-    return prefix_input
 
 def generate_errorlog():
     """creates error log and writes to 'log_files' directory"""
@@ -281,11 +171,10 @@ def generate_errorlog():
     f = open(f'./log_files/{timestamp}-log.txt', 'w+')
     f.write(f'{str(len(error_log.items()))} flag(s) raised in runtime. See details below: \n\n')
     for key, value in error_log.items():
+
         f.write(f'Error: {value[1]} \n')
-        f.write(f'family_site_id: {value[0][0]}\n')
-        f.write(f'indiv_site_id: {value[0][1]}\n')
-        f.write(f'combined_site_id: {value[0][2]}\n')
-        f.write(f'cohort_identifier_code: {value[0][3]}\n\n')
+        f.write(f'site_indiv_id: {value[0][0]}\n')
+        f.write(f'cohort_identifier_code: {value[0][1]}\n\n')
 
 def generate_success_list():
     """creates a list of successfully created and inserted ADSP IDs"""
