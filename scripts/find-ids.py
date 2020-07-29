@@ -141,15 +141,16 @@ def create_csv(retrieved_data_dict):
 def generate_errorlog():
     """creates error log and writes to 'log_files' directory"""
 
-    timestamp = calendar.timegm(time.gmtime())
-    f = open(f'./log_files/{timestamp}-log.txt', 'w+')
-    f.write(f'{str(len(error_log.items()))} flag(s) raised in runtime. See details below: \n\n')
-    for key, value in error_log.items():
-        f.write(f'Error: {value[1]} \n')
-        f.write(f'family_site_id: {value[0][0]}\n')
-        f.write(f'indiv_site_id: {value[0][1]}\n')
-        f.write(f'combined_site_id: {value[0][2]}\n')
-        f.write(f'cohort_identifier_code: {value[0][3]}\n\n')
+    if len(error_log) > 0:
+        timestamp = calendar.timegm(time.gmtime())
+        f = open(f'./log_files/{timestamp}-log.txt', 'w+')
+        f.write(f'{str(len(error_log.items()))} flag(s) raised in runtime. See details below: \n\n')
+        for key, value in error_log.items():
+            f.write(f'Error: {value[1]} \n')
+            f.write(f'family_site_id: {value[0][0]}\n')
+            f.write(f'indiv_site_id: {value[0][1]}\n')
+            f.write(f'combined_site_id: {value[0][2]}\n')
+            f.write(f'cohort_identifier_code: {value[0][3]}\n\n')
 
 if __name__ == '__main__':
     main()

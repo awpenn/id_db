@@ -115,24 +115,26 @@ def write_to_database():
         database_connection(query_string)
 
 def generate_duplicate_report():
-    timestamp = calendar.timegm(time.gmtime())
-    f = open(f'./log_files/{timestamp}-log.txt', 'w+')
-    f.write(f'{str(len(marked_as_duplicate_dict.items()))} duplicate sample_id(s) found. See details below: \n\n')
-    for dictkey, record in marked_as_duplicate_dict.items():
-        f.write(f'sample_id: {record[0]}\n')
-        f.write(f'data_type: {record[1]}\n')
-        f.write(f'sequencing_study: {record[2]}\n')
-        f.write(f'subject-adsp_id: {record[3]}\n\n')
-    
-    f.write('\n\n\n Please alter these ids to generate uniqueness and re-submit.')
-    f.close()
+    if len(marked_as_duplicate_dict) > 0:
+        timestamp = calendar.timegm(time.gmtime())
+        f = open(f'./log_files/{timestamp}-log.txt', 'w+')
+        f.write(f'{str(len(marked_as_duplicate_dict.items()))} duplicate sample_id(s) found. See details below: \n\n')
+        for dictkey, record in marked_as_duplicate_dict.items():
+            f.write(f'sample_id: {record[0]}\n')
+            f.write(f'data_type: {record[1]}\n')
+            f.write(f'sequencing_study: {record[2]}\n')
+            f.write(f'subject-adsp_id: {record[3]}\n\n')
+        
+        f.write('\n\n\n Please alter these ids to generate uniqueness and re-submit.')
+        f.close()
 
 def write_error_log():
-    timestamp = calendar.timegm(time.gmtime())
-    f = open(f'./log_files/{timestamp}-error-log.txt', 'w+')
-    f.write(f'{str(len(error_list))} error(s) occured during data check and load. See details below: \n\n')
-    for error in error_list:
-        f.write(f"Error:\n {error}\n")
+    if len(error_list) > 0:
+        timestamp = calendar.timegm(time.gmtime())
+        f = open(f'./log_files/{timestamp}-error-log.txt', 'w+')
+        f.write(f'{str(len(error_list))} error(s) occured during data check and load. See details below: \n\n')
+        for error in error_list:
+            f.write(f"Error:\n {error}\n")
     
     f.close()
 
