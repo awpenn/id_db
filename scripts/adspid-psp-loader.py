@@ -180,14 +180,15 @@ def generate_success_list():
     """creates a list of successfully created and inserted ADSP IDs"""
 
     timestamp = calendar.timegm(time.gmtime())
-    f = open(f'./log_files/success_lists/{timestamp}-generated_ids.txt', 'w+')
-    for id in success_id_log:
-        if success_id_log.index(id) >= len(success_id_log)-1:
-            f.write(id)
-        else:
-            f.write(id + ', ')
+    if len(success_id_log) > 0:
+        f = open(f'./log_files/success_lists/{timestamp}-generated_ids.txt', 'w+')
+        for id in success_id_log:
+            if success_id_log.index(id) >= len(success_id_log)-1:
+                f.write(id)
+            else:
+                f.write(id + ', ')
 
-    f.close()
+        f.close()
 
 if __name__ == '__main__':
     main()
