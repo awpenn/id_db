@@ -166,15 +166,15 @@ def write_to_database(records_to_database_dict):
 
 def generate_errorlog():
     """creates error log and writes to 'log_files' directory"""
+    if len(error_log) > 0:
+        timestamp = calendar.timegm(time.gmtime())
+        f = open(f'./log_files/{timestamp}-log.txt', 'w+')
+        f.write(f'{str(len(error_log.items()))} flag(s) raised in runtime. See details below: \n\n')
+        for key, value in error_log.items():
 
-    timestamp = calendar.timegm(time.gmtime())
-    f = open(f'./log_files/{timestamp}-log.txt', 'w+')
-    f.write(f'{str(len(error_log.items()))} flag(s) raised in runtime. See details below: \n\n')
-    for key, value in error_log.items():
-
-        f.write(f'Error: {value[1]} \n')
-        f.write(f'site_indiv_id: {value[0][0]}\n')
-        f.write(f'cohort_identifier_code: {value[0][1]}\n\n')
+            f.write(f'Error: {value[1]} \n')
+            f.write(f'site_indiv_id: {value[0][0]}\n')
+            f.write(f'cohort_identifier_code: {value[0][1]}\n\n')
 
 def generate_success_list():
     """creates a list of successfully created and inserted ADSP IDs"""
