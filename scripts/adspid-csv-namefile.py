@@ -380,7 +380,7 @@ def generate_errorlog():
 def generate_success_list():
     """creates a list of successfully created and inserted ADSP IDs"""
 
-    if len(success_id_log) > 0
+    if len(success_id_log) > 0:
         timestamp = calendar.timegm(time.gmtime())
         f = open(f'./log_files/success_lists/{timestamp}-generated_ids.txt', 'w+')
         for id in success_id_log:
