@@ -19,10 +19,22 @@ CREATE OR REPLACE FUNCTION cleanup_nulls()
 		$cleanup_nulls_trigger$ 
 LANGUAGE plpgsql;
 
--- 9/23 cleanup valid commits and runs but the columns dont get updated 9/24 -- think it has to be a trigger
+
 
 --TRIGGER DECLARATIONS
 CREATE TRIGGER cleanup_nulls_trigger AFTER INSERT ON generated_ids -- if you make it AFTER UPDATE will loop. 
 -- either look into that query-depth thing from consent_base(?) or leave as INSERT(?)
 	FOR EACH STATEMENT
 	EXECUTE PROCEDURE cleanup_nulls("generated_ids");
+
+CREATE TRIGGER cleanup_nulls_trigger AFTER INSERT ON cohort_identifier_codes -- if you make it AFTER UPDATE will loop. 
+	FOR EACH STATEMENT
+	EXECUTE PROCEDURE cleanup_nulls("cohort_identifier_codes");
+
+CREATE TRIGGER cleanup_nulls_trigger AFTER INSERT ON alias_ids -- if you make it AFTER UPDATE will loop. 
+	FOR EACH STATEMENT
+	EXECUTE PROCEDURE cleanup_nulls("alias_ids");
+
+CREATE TRIGGER cleanup_nulls_trigger AFTER INSERT ON sample_ids -- if you make it AFTER UPDATE will loop. 
+	FOR EACH STATEMENT
+	EXECUTE PROCEDURE cleanup_nulls("sample_ids");
