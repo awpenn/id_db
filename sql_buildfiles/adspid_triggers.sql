@@ -5,13 +5,13 @@ CREATE OR REPLACE FUNCTION cleanup_nulls()
 	RETURNS TRIGGER AS 
 		$cleanup_nulls_trigger$
         DECLARE
-        i RECORD;
+        i TEXT;
 		_table_name TEXT;
         BEGIN
 		_table_name := TG_ARGV[0];
 			for i in EXECUTE format('SELECT column_name FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = $1 AND data_type = $2') USING _table_name, 'character varying'
 				LOOP
-					EXECUTE format('UPDATE %I SET %I = NULL WHERE %I = $1', _table_name, i.column_name, i.column_name) USING 'NULL';
+					EXECUTE format('UPDATE %I SET %I = NULL WHERE %I = $1', _table_name, i, i) USING 'NULL';
 				END LOOP;
 				RETURN NULL;
         END
