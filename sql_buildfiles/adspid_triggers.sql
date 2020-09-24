@@ -1,5 +1,5 @@
 -- On new insert to generated_ids table, 
---query the table's column names (HARDCODE excluding those with int and bool datatypes),
+-- query the table's column names (HARDCODE excluding those with int and bool datatypes),
 --go through each column and turn string 'NULL's into actual NULLs
 CREATE OR REPLACE FUNCTION cleanup_nulls() 
 	RETURNS TRIGGER AS 
@@ -7,7 +7,7 @@ CREATE OR REPLACE FUNCTION cleanup_nulls()
         DECLARE
         i RECORD;
         BEGIN
-			for i in (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'generated_ids' AND column_name NOT IN ('id', 'cohort_identifier_code_key', 'valid', 'subject_type', 'createdat', 'updatedat'))
+			for i in (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'generated_ids' AND data_type = 'character varying')
 				LOOP
 					EXECUTE format('UPDATE generated_ids SET %I = NULL WHERE %I = $1', i.column_name, i.column_name) USING 'NULL';
 				END LOOP;
