@@ -393,3 +393,4 @@ if __name__ == '__main__':
     main()
     generate_errorlog()
     generate_success_list()
+    print('Script done processing new ids.  Check error and success logs, and database to ensure accuracy and completeness.')
