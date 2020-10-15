@@ -74,7 +74,7 @@ GRANT SELECT ON public.subjects_samples_ids TO viewer;
 
 GRANT SELECT ON TABLE public.cohort_identifier_codes TO adsp_id_generator;
 
-GRANT INSERT, SELECT ON TABLE public.generated_ids TO adsp_id_generator;
+GRANT INSERT, SELECT, UPDATE ON TABLE public.generated_ids TO adsp_id_generator;
 
 GRANT INSERT, SELECT ON TABLE public.sample_ids TO adsp_id_generator;
 
