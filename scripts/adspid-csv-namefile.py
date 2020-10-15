@@ -102,7 +102,7 @@ def database_connection(query):
         if(connection):
             cursor.close()
             connection.close()
-            print('database connection closed')
+            #print('database connection closed')
 
 def create_dict():
     """creates dicts of to-be-added subject data and already-in-database data.  Dict elements have keys created by concatenating the cohort code and lookup id"""
@@ -171,7 +171,6 @@ def legacy_check(legacy_check_dict, callback):
         cohort_identifier_code = value[3]
 
         returned_cohort_code_tuple = database_connection(f"SELECT DISTINCT cohort_identifier_code FROM lookup WHERE site_fam_id = '{query_family_id}'")
-        print(f'length of tuple returned for family_id {query_family_id} fetch is {len(returned_cohort_code_tuple)}')
 
         if len(returned_cohort_code_tuple) == 1 :
             returned_cohort_code = returned_cohort_code_tuple[0][0]
@@ -220,7 +219,6 @@ def compare(current_records_dict, new_records_dict):
             records_to_database_dict[key] = new_records_dict[key]
     
     if len(records_to_database_dict) > 0:
-        print(records_to_database_dict)
         write_to_database(records_to_database_dict)
     else:
         print('No new records to create.....')
@@ -279,11 +277,11 @@ def write_to_database(records_to_database_dict):
                         else:
                             print(f'An adsp_family_id was returned as last made for {cohort_identifier_code}')
                             most_recent_family_id = retrieved_adsp_family[0][0]
-                            print(most_recent_family_id)
+
                             prefix = most_recent_family_id[:2]
                             id_numeric_end = len(most_recent_family_id)-1
                             incremental = int(most_recent_family_id[2:id_numeric_end])+1
-
+                            print('New family id:')
                             print(f'{prefix}{str(incremental).zfill(4)}F')
                             adsp_family_id = f'{prefix}{str(incremental).zfill(4)}F'
                 
