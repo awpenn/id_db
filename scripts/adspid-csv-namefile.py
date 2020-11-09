@@ -52,7 +52,8 @@ def main():
         return filename
 
     LOADFILE = get_filename()
-
+    print("Warning: You can only load data of one subject_type (e.g. case/control, family, etc.) at a time.")
+    time.sleep(2.5)
     select_casefam = input('Are you loading family data? (y/n) ')
     if select_casefam not in ['y', 'n', 'Y', 'N', 'yes', 'no', 'YES', 'NO', 'Yes', 'No']:
         main()
