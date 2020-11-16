@@ -88,6 +88,19 @@
     - %run -i '../id_db/adspid-csv-namefile.py'
 
 ### Setup without docker
-- follow instructions at: http://tljh.jupyter.org/en/latest/install/custom-server.html
+- follow instructions at: /opt/tljh/user/etc/jupyter/
 
+### Disabling terminals in Jupyterhub
+followed woschmid 6/14/19 comment in: https://github.com/jupyterhub/the-littlest-jupyterhub/issues/373
 
+    - I enabled the terminals again in order to execute the following commands in the terminal of the administrator user in TLJH
+    - I searched for the config paths using the command jupyter --paths (mentioned in this issue)
+    - I generated a config file jupyter_notebook_config.py using the command jupyter notebook --generate-config (described here). This file is generated into the admin's .jupyter directory (listed first in the config paths)
+    - I enabled the line c.NotebookApp.terminals_enabled = True in the generated jupyter_notebook_config.py
+    - I copied this file using sudo to /opt/tljh/user/etc/jupyter (listed second in the config paths) and changed it's entry from True to False
+    - Reboot the server (is there a better way?)
+    - Now the TLJH administrator user has access to a terminal and all normal users have no terminal
+
+Followed exactly as above, copying the generated `jupyter_notebook_config.py` to /opt/tljh/user/etc/jupyter (not further into the `jupyter_notebook_config.d` directory at that location)  
+
+Didn't have to restart from terminal, just exited and when logged in as jupyuser the changes were in effect. 
