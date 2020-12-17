@@ -134,6 +134,19 @@ def create_dict():
     with open(f'./source_files/{LOADFILE}', mode='r', encoding='utf-8-sig') as csv_file:
         new_records = csv.reader(csv_file) 
 
+        ## check if any new ids are for MIAMI, so can flag 
+        flag_keys = ['DUK26057', '-1000']
+        flagged_ids_dict = {}
+
+        for row in new_records:
+            if row[ 2 ] == 'MIA':
+                if any( keys in row[ 0 ] for keys in flag_keys ):
+                    flagged_ids_dict[ row[ 1 ] ] = row
+
+        if flagged_ids_dict:
+            DUK26057_and_1000_special_flag( flagged_ids_dict )
+
+
         for row in new_records:
             site_fam_id = row[0]
             site_indiv_id = row[1]
@@ -389,6 +402,30 @@ def generate_success_list():
                 f.write(id + ', ')
 
         f.close()
+
+def DUK26057_and_1000_special_flag( flagged_ids ):
+    """tages dict of flagged ids/data, asks user to check and either continue or exit program"""
+    while True:
+        try:
+            notice_input = input(
+                f"The load file contains subjects from MIA with either family_id = DUK26057 or ending in '-1000'. Please check the following ids for correctness: { str( [ f for f in flagged_ids.keys() ] ).translate({ord(i): None for i in '[]'}) }.  Do you want to continue the script (no will exit the program)? (y/n)"
+            )
+        except ValueError:
+            continue
+        if notice_input in ['y', 'Y', 'yes', 'Yes', 'YES']:
+            print( "ID generation will continue..." )
+            time.sleep( 2.5 )
+            return
+
+        elif notice_input in ['n', 'N', 'no', 'No', 'NO']:
+            print( "Program will now exit." )
+            sys.exit()
+        else:
+            print("Please input a valid entry. ")
+            continue
+
+
+
 
 if __name__ == '__main__':
     main()
