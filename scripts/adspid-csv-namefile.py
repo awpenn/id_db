@@ -146,7 +146,7 @@ def create_dict():
         if flagged_ids_dict:
             DUK26057_and_1000_special_flag( flagged_ids_dict )
 
-
+        breakpoint()
         for row in new_records:
             site_fam_id = row[0]
             site_indiv_id = row[1]
@@ -403,15 +403,33 @@ def generate_success_list():
 
         f.close()
 
+def generate_DUK_or_1000_checklist( flagged_ids ):
+    timestamp = calendar.timegm(time.gmtime())
+    f = open(f'./log_files/{timestamp}-DUK26057-or-1000-checklist.txt', 'w+')
+    f.write(f'{ str( len( flagged_ids ) ) } subjects from DUK26057 or *-1000 family: \n\n')
+
+    for key, value in flagged_ids.items():
+        f.write(f'family_site_id: {value[0]}\n')
+        f.write(f'indiv_site_id: {value[1]}\n')
+        f.write(f'cohort_identifier_code: {value[2]}\n\n')
+
 def DUK26057_and_1000_special_flag( flagged_ids ):
     """tages dict of flagged ids/data, asks user to check and either continue or exit program"""
+
     while True:
         try:
-            notice_input = input(
-                f"The load file contains subjects from MIA with either family_id = DUK26057 or ending in '-1000'. Please check the following ids for correctness: { str( [ f for f in flagged_ids.keys() ] ).translate({ord(i): None for i in '[]'}) }.  Do you want to continue the script (no will exit the program)? (y/n)"
-            )
+            if len( flagged_ids ) > 5:
+                generate_DUK_or_1000_checklist( flagged_ids )
+                notice_input = input(
+                    f"{ len( flagged_ids ) } subject(s) with DUK26057 or *-1000 family_ids are in loadfile. A file has been generated containing these subjects data.  Please check for correctness.  Do you want to continue with ID generation? (selecting 'no' will exit program). (y/n) "
+                )
+            else:
+                notice_input = input(
+                    f"The load file contains { len( flagged_ids ) } subject(s) from MIA with either family_id = DUK26057 or ending in '-1000'. Please check the following ids for correctness: { str( [ f for f in flagged_ids.keys() ] ).translate({ord(i): None for i in '[]'}) }.  Do you want to continue the script (no will exit the program)? (y/n)"
+                )
         except ValueError:
             continue
+
         if notice_input in ['y', 'Y', 'yes', 'Yes', 'YES']:
             print( "ID generation will continue..." )
             time.sleep( 2.5 )
