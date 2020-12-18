@@ -146,7 +146,6 @@ def create_dict():
         if flagged_ids_dict:
             DUK26057_and_1000_special_flag( flagged_ids_dict )
 
-        breakpoint()
         for row in new_records:
             site_fam_id = row[0]
             site_indiv_id = row[1]
