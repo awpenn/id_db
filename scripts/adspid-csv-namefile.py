@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 import os
 
 import calendar
+import datetime
 import time
 
 new_records = []
@@ -146,6 +147,7 @@ def create_dict():
         if flagged_ids_dict:
             DUK26057_and_1000_special_flag( flagged_ids_dict )
 
+        breakpoint()
         for row in new_records:
             site_fam_id = row[0]
             site_indiv_id = row[1]
@@ -378,8 +380,9 @@ def get_indiv_id_prefix(cohort_identifier_code):
 def generate_errorlog():
     """creates error log and writes to 'log_files' directory"""
     if len(error_log) > 0:
-        timestamp = calendar.timegm(time.gmtime())
-        f = open(f'./log_files/{timestamp}-log.txt', 'w+')
+        date = datetime.date.today()
+        time = datetime.datetime.now().strftime("%H:%M:%S")
+        f = open(f'./log_files/{ date }-{ time }-log.txt', 'w+')
         f.write(f'{str(len(error_log.items()))} flag(s) raised in runtime. See details below: \n\n')
         for key, value in error_log.items():
             f.write(f'Error: {value[1]} \n')
@@ -392,8 +395,9 @@ def generate_success_list():
     """creates a list of successfully created and inserted ADSP IDs"""
 
     if len(success_id_log) > 0:
-        timestamp = calendar.timegm(time.gmtime())
-        f = open(f'./log_files/success_lists/{timestamp}-generated_ids.txt', 'w+')
+        date = datetime.date.today()
+        time = datetime.datetime.now().strftime("%H:%M:%S")
+        f = open(f'./log_files/success_lists/{ date }-{ time }-generated_ids.txt', 'w+')
         for id in success_id_log:
             if success_id_log.index(id) >= len(success_id_log)-1:
                 f.write(id)
@@ -403,8 +407,10 @@ def generate_success_list():
         f.close()
 
 def generate_DUK_or_1000_checklist( flagged_ids ):
-    timestamp = calendar.timegm(time.gmtime())
-    f = open(f'./log_files/{timestamp}-DUK26057-or-1000-checklist.txt', 'w+')
+    date = datetime.date.today()
+    time = datetime.datetime.now().strftime("%H:%M:%S")
+    
+    f = open(f'./log_files/{ date }-{ time }-DUK26057-or-1000-checklist.txt', 'w+')
     f.write(f'{ str( len( flagged_ids ) ) } subjects from DUK26057 or *-1000 family: \n\n')
 
     for key, value in flagged_ids.items():
