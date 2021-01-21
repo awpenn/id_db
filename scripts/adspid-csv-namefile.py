@@ -366,7 +366,7 @@ def create_first_family_id():
 def get_indiv_id_prefix(cohort_identifier_code):
     while True:
         try: 
-            prefix_input = input(f"Enter two-letter code that will serve as first two charactrers of new adsp_ids for {cohort_identifier_code}...")
+            prefix_input = input(f"Enter two-letter code that will serve as first two characters of new adsp_ids for {cohort_identifier_code}...")
         except ValueError:
             continue
         if len(prefix_input) is not 2:
