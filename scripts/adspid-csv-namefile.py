@@ -52,12 +52,11 @@ def main():
         
         return filename
 
-    # LOADFILE = get_filename()
-    LOADFILE = 'ucla-test.csv'
-    select_casefam = 'n'
+    LOADFILE = get_filename()
+
     print("Warning: You can only load data of one subject_type (e.g. case/control, family, etc.) at a time.")
     time.sleep(2.5)
-    # select_casefam = input('Are you loading family data? (y/n) ')
+    select_casefam = input('Are you loading family data? (y/n) ')
     if select_casefam not in ['y', 'n', 'Y', 'N', 'yes', 'no', 'YES', 'NO', 'Yes', 'No']:
         main()
 
@@ -342,7 +341,6 @@ def write_to_database(records_to_database_dict):
 
             adsp_id = f'{ id_prefix }-{ cohort_identifier_code }-{ adsp_indiv_partial_id }'
 
-            breakpoint()
             database_connection(f"INSERT INTO generated_ids (site_fam_id, site_indiv_id, cohort_identifier_code_key, lookup_id, adsp_family_id, adsp_indiv_partial_id, adsp_id, subject_type) VALUES ('{site_fam_id}','{site_indiv_id}',{cohort_identifier_code_key},'{lookup_id}','{adsp_family_id}','{adsp_indiv_partial_id}','{adsp_id}','{subject_type}')")
             success_id_log.append(adsp_id)
 
