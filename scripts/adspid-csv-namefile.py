@@ -406,7 +406,7 @@ def generate_success_list():
             if success_id_log.index(id) >= len(success_id_log)-1:
                 f.write(id)
             else:
-                f.write(id + ', ')
+                f.write(id + ', \n')
 
         f.close()
 
