@@ -20,7 +20,7 @@ DROP VIEW IF EXISTS lookup;
 	/*create lookup view with no valid filter for checker script*/
 
 		CREATE VIEW builder_lookup AS
-		SELECT generated_ids.id AS id, adsp_id, site_fam_id, site_indiv_id, cohort_identifier_codes.cohort_identifier_code, lookup_id, adsp_family_id, adsp_indiv_partial_id, comments, subject_type
+		SELECT generated_ids.id AS id, adsp_id, site_fam_id, site_indiv_id, cohort_identifier_codes.cohort_identifier_code, lookup_id, adsp_family_id, adsp_indiv_partial_id, comments, subject_type, generated_ids.createdat as createdat
 		FROM generated_ids
 		JOIN cohort_identifier_codes
 		ON generated_ids.cohort_identifier_code_key = cohort_identifier_codes.id;
@@ -68,3 +68,21 @@ DROP VIEW IF EXISTS lookup;
 			FROM lookup
 			JOIN sample_ids
 			ON lookup.adsp_id = sample_ids.subject_adsp_id;
+
+	
+	/*View that generates list of cohort_codes with their highest-in-sequence adsp_indiv_partial_id*/
+	--n.b. 1/26/21 this may need to change to look for the createdat or something, because some cohorts have inconsistent 
+	--id format ( probably need to address that fact additionally )
+	CREATE VIEW last_partial_by_cohort AS
+	SELECT cohort_identifier_code, adsp_indiv_partial_id
+	FROM 
+	generated_ids g
+	JOIN (
+			SELECT cohort_identifier_code, max(generated_ids.id) AS maxid
+			FROM generated_ids
+			JOIN cohort_identifier_codes
+			ON generated_ids.cohort_identifier_code_key = cohort_identifier_codes.id
+			GROUP BY cohort_identifier_code
+		) j
+	ON g.id = j.maxid
+	ORDER BY cohort_identifier_code ASC;

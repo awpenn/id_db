@@ -1,3 +1,32 @@
+-- drop builder lookup view and recreated with createdat column
+DROP VIEW IF EXISTS builder_lookup;
+CREATE VIEW builder_lookup AS
+	SELECT generated_ids.id AS id, adsp_id, site_fam_id, site_indiv_id, cohort_identifier_codes.cohort_identifier_code, lookup_id, adsp_family_id, adsp_indiv_partial_id, comments, subject_type, generated_ids.createdat as createdat
+	FROM generated_ids
+	JOIN cohort_identifier_codes
+	ON generated_ids.cohort_identifier_code_key = cohort_identifier_codes.id;
+
+
+
+-- NEW LAST ID CREATED LOOKUP VIEW
+CREATE VIEW last_partial_by_cohort AS
+	SELECT cohort_identifier_code, adsp_indiv_partial_id
+	FROM 
+	generated_ids g
+	JOIN (
+			SELECT cohort_identifier_code, max(generated_ids.id) AS maxid
+			FROM generated_ids
+			JOIN cohort_identifier_codes
+			ON generated_ids.cohort_identifier_code_key = cohort_identifier_codes.id
+			GROUP BY cohort_identifier_code
+		) j
+	ON g.id = j.maxid
+	ORDER BY cohort_identifier_code ASC;
+
+	
+
+-- REDO PERMISSIONS
+
 --PREVENT TABLE DROPS FOR NONSUPERUSER
 REVOKE CREATE ON SCHEMA public FROM PUBLIC;
 

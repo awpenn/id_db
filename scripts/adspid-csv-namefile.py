@@ -52,10 +52,12 @@ def main():
         
         return filename
 
-    LOADFILE = get_filename()
+    # LOADFILE = get_filename()
+    LOADFILE = 'ucla-test.csv'
+    select_casefam = 'n'
     print("Warning: You can only load data of one subject_type (e.g. case/control, family, etc.) at a time.")
     time.sleep(2.5)
-    select_casefam = input('Are you loading family data? (y/n) ')
+    # select_casefam = input('Are you loading family data? (y/n) ')
     if select_casefam not in ['y', 'n', 'Y', 'N', 'yes', 'no', 'YES', 'NO', 'Yes', 'No']:
         main()
 
@@ -147,7 +149,7 @@ def create_dict():
         if flagged_ids_dict:
             DUK26057_and_1000_special_flag( flagged_ids_dict )
 
-        breakpoint()
+        csv_file.seek( 0 ) ## have to reset the reader after looping through above in order to loop below
         for row in new_records:
             site_fam_id = row[0]
             site_indiv_id = row[1]
@@ -306,7 +308,9 @@ def write_to_database(records_to_database_dict):
             else:
                 adsp_family_id = "NA"
         ## `builder_lookup` ignores validity flag when looking for the latest adsp_partial_id created, so doesnt duplicate one that was created and made not valid
-        retrieved_partial = database_connection(f"SELECT adsp_indiv_partial_id FROM builder_lookup WHERE cohort_identifier_code = '{cohort_identifier_code}' ORDER BY adsp_indiv_partial_id DESC LIMIT 1")
+                                                
+        qstring = f"SELECT adsp_indiv_partial_id FROM builder_lookup where cohort_identifier_code = '{cohort_identifier_code}' order by createdat DESC, adsp_indiv_partial_id DESC LIMIT 1"
+        retrieved_partial = database_connection( qstring )
 
         if len(retrieved_partial) < 1:
             print(f"No adsp_indiv_partial found associated with {cohort_identifier_code}.")
@@ -331,12 +335,14 @@ def write_to_database(records_to_database_dict):
             
             prefix = database_connection(f"SELECT DISTINCT adsp_generated_ids_prefix FROM cohort_identifier_codes WHERE cohort_identifier_code = '{cohort_identifier_code}'")[0][0]
 
-            incremental = int(last_partial_created[2:])+1
+            # incremental = int(last_partial_created[2:])+1
+            incremental = int( last_partial_created[ len( prefix ): ] ) + 1
 
-            adsp_indiv_partial_id = f'{prefix}{str(incremental).zfill(6)}'
+            adsp_indiv_partial_id = f'{ prefix }{str( incremental ).zfill( 6 ) }'
 
-            adsp_id = f'{id_prefix}-{cohort_identifier_code}-{adsp_indiv_partial_id}'
+            adsp_id = f'{ id_prefix }-{ cohort_identifier_code }-{ adsp_indiv_partial_id }'
 
+            breakpoint()
             database_connection(f"INSERT INTO generated_ids (site_fam_id, site_indiv_id, cohort_identifier_code_key, lookup_id, adsp_family_id, adsp_indiv_partial_id, adsp_id, subject_type) VALUES ('{site_fam_id}','{site_indiv_id}',{cohort_identifier_code_key},'{lookup_id}','{adsp_family_id}','{adsp_indiv_partial_id}','{adsp_id}','{subject_type}')")
             success_id_log.append(adsp_id)
 
