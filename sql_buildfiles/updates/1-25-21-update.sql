@@ -117,7 +117,7 @@ GRANT SELECT ON public.lookup TO adsp_id_generator;
 GRANT SELECT ON public.builder_lookup TO adsp_id_generator;
 GRANT SELECT ON public.lookup_aliases TO adsp_id_generator;
 GRANT SELECT ON public.lookup_cc TO adsp_id_generator;
-GRANT SELECT ON public.lookup_fam TO adsp_id_generator;a
+GRANT SELECT ON public.lookup_fam TO adsp_id_generator;
 GRANT SELECT ON public.subjects_samples TO adsp_id_generator;
 GRANT SELECT ON public.subjects_samples_ids TO adsp_id_generator;
 GRANT SELECT ON public.last_partial_by_cohort TO adsp_id_generator;
