@@ -308,7 +308,8 @@ def write_to_database(records_to_database_dict):
                 adsp_family_id = "NA"
         ## `builder_lookup` ignores validity flag when looking for the latest adsp_partial_id created, so doesnt duplicate one that was created and made not valid
                                                 
-        qstring = f"SELECT adsp_indiv_partial_id FROM builder_lookup where cohort_identifier_code = '{cohort_identifier_code}' order by createdat DESC, adsp_indiv_partial_id DESC LIMIT 1"
+        # qstring = f"SELECT adsp_indiv_partial_id FROM builder_lookup WHERE cohort_identifier_code = '{cohort_identifier_code}' order by createdat DESC, adsp_indiv_partial_id DESC LIMIT 1"
+        qstring = f"SELECT adsp_indiv_partial_id FROM last_partial_by_cohort WHERE cohort_identifier_code = '{cohort_identifier_code}'"
         retrieved_partial = database_connection( qstring )
 
         if len(retrieved_partial) < 1:
@@ -341,6 +342,7 @@ def write_to_database(records_to_database_dict):
 
             adsp_id = f'{ id_prefix }-{ cohort_identifier_code }-{ adsp_indiv_partial_id }'
 
+            breakpoint()
             database_connection(f"INSERT INTO generated_ids (site_fam_id, site_indiv_id, cohort_identifier_code_key, lookup_id, adsp_family_id, adsp_indiv_partial_id, adsp_id, subject_type) VALUES ('{site_fam_id}','{site_indiv_id}',{cohort_identifier_code_key},'{lookup_id}','{adsp_family_id}','{adsp_indiv_partial_id}','{adsp_id}','{subject_type}')")
             success_id_log.append(adsp_id)
 
