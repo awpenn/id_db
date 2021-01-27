@@ -33,6 +33,7 @@ def main():
     global create_family_ids
     global LOADFILE
    
+    
     def get_filename():
         while True:
             try:
@@ -51,6 +52,8 @@ def main():
                     break
         
         return filename
+    
+    alert_last_created_id()
 
     LOADFILE = get_filename()
 
@@ -452,8 +455,22 @@ def DUK26057_and_1000_special_flag( flagged_ids ):
             print("Please input a valid entry. ")
             continue
 
-
-
+def alert_last_created_id():
+    """no args, no return. Returns last created adsp_indiv_partial_id by cohort"""
+    cohort_identifier_codes = [ x[ 0 ].lower() for x in database_connection( "SELECT cohort_identifier_code FROM cohort_identifier_codes" ) ]
+    while True:
+        try:
+            cohort_input = input( f"What cohort are you generating ids for? ( enter cohort identifier code ). " )
+        except ValueError:
+            continue
+        if cohort_input.lower() not in cohort_identifier_codes:
+            print( f"{ cohort_input.upper() } is not a cohort in the database.  Please try again." ) 
+            continue
+        else:
+            qstring = f"SELECT adsp_indiv_partial_id FROM last_partial_by_cohort WHERE cohort_identifier_code = '{cohort_input.upper()}'"
+            last_partial_created = database_connection( qstring )[ 0 ][ 0 ]
+            print( f"The last adsp_indiv_partial_id created for { cohort_input.upper() } was { last_partial_created }. " )
+            break
 
 if __name__ == '__main__':
     main()
