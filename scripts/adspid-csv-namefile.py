@@ -342,7 +342,6 @@ def write_to_database(records_to_database_dict):
 
             adsp_id = f'{ id_prefix }-{ cohort_identifier_code }-{ adsp_indiv_partial_id }'
 
-            breakpoint()
             database_connection(f"INSERT INTO generated_ids (site_fam_id, site_indiv_id, cohort_identifier_code_key, lookup_id, adsp_family_id, adsp_indiv_partial_id, adsp_id, subject_type) VALUES ('{site_fam_id}','{site_indiv_id}',{cohort_identifier_code_key},'{lookup_id}','{adsp_family_id}','{adsp_indiv_partial_id}','{adsp_id}','{subject_type}')")
             success_id_log.append(adsp_id)
 
